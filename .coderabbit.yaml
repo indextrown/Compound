@@ -1,0 +1,100 @@
+language: "ko-KR"
+
+early_access: false
+
+tone_instructions: >
+  Compound는 ReactorKit, TCA, 그리고 현대 Swift Concurrency 철학에서 영감을 받은 경량 단방향 상태 관리 라이브러리입니다.
+  리뷰는 친절하지만 단호하게, 단방향 데이터 흐름의 일관성, 예측 가능한 상태 변경, Swift Concurrency 안정성,
+  공개 API의 단순성, UIKit/SwiftUI 양쪽에서의 사용성을 우선해 작성하세요. 칭찬은 짧게, 개선 제안은 근거와 함께
+  구체적으로 남겨주세요. Compound를 TCA처럼 복잡한 Store/Reducer/DSL 중심 프레임워크로 유도하지 마세요.
+
+reviews:
+  profile: "chill"
+
+  review_status: false
+  commit_status: false
+  in_progress_fortune: false
+  request_changes_workflow: false
+
+  high_level_summary: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  assess_linked_issues: true
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  auto_apply_labels: false
+  suggested_reviewers: false
+  auto_assign_reviewers: false
+  poem: false
+
+  path_instructions:
+    - path: Sources/**/*.swift
+      instructions: |
+        [Compound 라이브러리 리뷰 기준]
+        1. 이 프로젝트는 ReactorKit 스타일 개발 경험을 Swift Concurrency 시대로 재해석한 경량 단방향 상태 관리 라이브러리입니다.
+        2. Compound는 TCA처럼 Store/Reducer를 분리하는 구조가 아니라, 하나의 Compound 객체가 state 보유, action 처리, async side effect, reduce를 함께 담당합니다.
+        3. 변경이 라이브러리 철학과 맞는지 먼저 검토해주세요: 단순성, 예측 가능성, 최소 추상화, 바닐라스러운 Swift 스타일을 해치지 않아야 합니다.
+        4. 공개 API는 설명 가능하고 작아야 합니다. 복잡한 DSL, 과도한 generic, 깊은 계층화, 숨겨진 magic은 지양해야 합니다.
+        5. RxSwift 의존성이나 Rx식 설계로 회귀하지 않는지, Combine + async/await + Swift 6 Sendable 중심 설계가 유지되는지 확인해주세요.
+
+        [Architecture]
+        6. 핵심 흐름인 View -> send(Action) -> mutate(Action) -> Mutation -> reduce(State, Mutation) -> new State가 코드에서 흐려지지 않는지 확인해주세요.
+        7. mutate는 side effect와 비동기 처리의 경계로, reduce는 순수한 상태 변환으로 유지되는지 검토해주세요.
+        8. 상태 변경이 reduce를 우회해 직접 일어나거나, action 처리와 state mutation 책임이 뒤섞이지 않는지 지적해주세요.
+        9. Compound가 사실상 ViewModel/Reactor 역할을 수행하되, 단방향 데이터 흐름과 상태 예측 가능성이 유지되는지 확인해주세요.
+
+        [Concurrency]
+        10. MainActor 경계가 명확한지, UI 관찰 가능한 state가 actor isolation을 위반하지 않는지 검토해주세요.
+        11. async/await 사용이 자연스러운지, Task 생성이 불필요하게 중첩되거나 취소 전파를 깨지 않는지 확인해주세요.
+        12. Sendable 채택이 억지로 붙은 것이 아닌지, 실제로 데이터 경쟁을 막는 방향인지 검토해주세요.
+        13. 비동기 side effect 도중 오래된 state를 캡처해 잘못된 mutation을 만드는 위험이 있는지 확인해주세요.
+        14. state 읽기/쓰기, mutation 생성, reduce 적용 순서가 레이스 컨디션 없이 이해 가능한지 검토해주세요.
+
+        [API Design]
+        15. ObservableObject, @Published, Combine 노출 방식이 UIKit과 SwiftUI 양쪽에서 자연스럽게 사용할 수 있는지 확인해주세요.
+        16. protocol, default implementation, helper API가 학습 비용을 높이지 않는지 검토해주세요.
+        17. 사용 예시가 ReactorKit 경험을 주면서도 Swift Concurrency 스타일에 맞는지 확인해주세요.
+        18. 에러 처리, 취소 처리, 장기 실행 task 지원이 추가된다면 기존 단순성을 해치지 않는지 검토해주세요.
+
+    - path: Tests/**/*.swift
+      instructions: |
+        1. 테스트는 구현 디테일보다 Compound의 계약과 사용자 관점 동작을 검증해야 합니다.
+        2. send(action) 이후 state가 기대한 mutation/reduce 흐름으로 바뀌는지 검증하는 테스트를 선호해주세요.
+        3. mutate의 비동기 처리, nil mutation, state 업데이트 순서가 결정적으로 검증되는지 확인해주세요.
+        4. MainActor 격리, Sendable 관련 제약, 동시 action 처리 시 의미가 명확한지 테스트로 드러나는지 검토해주세요.
+        5. sleep 기반 테스트보다 명시적 task 제어와 관찰 가능한 state assertions를 선호해주세요.
+
+    - path: Package.swift
+      instructions: |
+        1. Swift Package 라이브러리로서 dependency와 platform 설정이 Compound 방향성과 맞는지 검토해주세요.
+        2. 불필요한 외부 의존성이 추가되지 않는지, 특히 RxSwift 같은 비의도적 의존성이 들어오지 않는지 확인해주세요.
+        3. Swift 6, Sendable, concurrency 관련 설정이 라이브러리 목표와 모순되지 않는지 검토해주세요.
+
+    - path: "**/*.md"
+      instructions: |
+        1. 문서가 Compound를 TCA clone이나 Redux clone처럼 설명하지 않는지 확인해주세요.
+        2. Compound의 핵심 방향인 경량 단방향 상태 관리, ReactorKit 스타일 API, Swift Concurrency 친화성이 분명히 드러나는지 검토해주세요.
+        3. 아직 구현되지 않은 기능을 완성된 기능처럼 과장하지 않도록 지적해주세요.
+        4. 예제 코드와 아키텍처 설명이 실제 공개 API와 모순되지 않는지 확인해주세요.
+
+  auto_review:
+    enabled: true
+    drafts: true
+    auto_incremental_review: true
+
+chat:
+  auto_reply: false
+
+knowledge_base:
+  web_search:
+    enabled: true
+
+  learnings:
+    scope: local
+
+  issues:
+    scope: local
+
+  pull_requests:
+    scope: local
