@@ -33,9 +33,32 @@ View -> send(Action) -> mutate(Action) -> AsyncStream<Mutation> -> reduce(State,
 
 ## 설치
 
-Swift Package Manager에서 이 저장소 URL을 추가해 사용합니다.
+Swift Package Manager에서 아래 URL을 추가합니다.
 
-현재 로컬 개발 중이라면 Xcode의 `Package Dependencies`에서 이 패키지를 로컬 경로로 추가할 수 있습니다.
+```text
+https://github.com/indextrown/Compound.git
+```
+
+`Package.swift`를 직접 수정한다면 다음처럼 추가합니다.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/indextrown/Compound.git", from: "1.0.0")
+]
+```
+
+사용할 target에는 `Compound` product를 연결합니다.
+
+```swift
+.target(
+    name: "YourTarget",
+    dependencies: [
+        .product(name: "Compound", package: "Compound")
+    ]
+)
+```
+
+Xcode에서는 `File > Add Package Dependencies...`에서 위 URL을 입력하고 `Dependency Rule`을 `Up to Next Major Version` / `1.0.0`으로 설정하면 됩니다.
 
 ## 기본 사용법
 
