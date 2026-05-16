@@ -233,12 +233,12 @@ Compound 인스턴스가 해제되면 남아 있는 action task는 자동 취소
 
 ```mermaid
 flowchart LR
-    View[View<br/>SwiftUI / UIKit]
-    Send[send(Action)<br/>순차 처리 queue]
-    Mutate[mutate(Action)<br/>side effect 경계]
-    Stream[AsyncStream&lt;Mutation&gt;<br/>just / concat / merge]
-    Reduce[reduce(State, Mutation)<br/>상태 전이 경계]
-    State[@Published state<br/>MainActor]
+    View["View<br/>SwiftUI / UIKit"]
+    Send["send(Action)<br/>순차 처리 queue"]
+    Mutate["mutate(Action)<br/>side effect 경계"]
+    Stream["AsyncStream&lt;Mutation&gt;<br/>just / concat / merge"]
+    Reduce["reduce(State, Mutation)<br/>상태 전이 경계"]
+    State["@Published state<br/>MainActor"]
 
     View --> Send
     Send --> Mutate
@@ -247,9 +247,9 @@ flowchart LR
     Reduce --> State
     State -. publish .-> View
 
-    Cancel[cancelAllActions()]
-    Lifetime[deinit]
-    Cleanup[onTermination<br/>listener / socket / timer 정리]
+    Cancel["cancelAllActions()"]
+    Lifetime["deinit"]
+    Cleanup["onTermination<br/>listener / socket / timer 정리"]
 
     Cancel -. 취소 .-> Send
     Lifetime -. 자동 취소 .-> Send
