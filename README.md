@@ -52,6 +52,8 @@ final class CounterCompound: Compound {
     }
 
     enum Mutation: Sendable {
+        case increaseCount
+        case decreaseCount
         case setCount(Int)
     }
 
@@ -64,9 +66,9 @@ final class CounterCompound: Compound {
     func mutate(action: Action) -> AsyncStream<Mutation> {
         switch action {
         case .increaseButtonTapped:
-            return .just(.setCount(state.count + 1))
+            return .just(.increaseCount)
         case .decreaseButtonTapped:
-            return .just(.setCount(state.count - 1))
+            return .just(.decreaseCount)
         case .resetButtonTapped:
             return .just(.setCount(0))
         }
@@ -76,6 +78,10 @@ final class CounterCompound: Compound {
         var newState = state
 
         switch mutation {
+        case .increaseCount:
+            newState.count += 1
+        case .decreaseCount:
+            newState.count -= 1
         case .setCount(let count):
             newState.count = count
         }
@@ -86,6 +92,8 @@ final class CounterCompound: Compound {
 ```
 
 동기적인 상태 변경은 `.just(...)`로 mutation 하나를 바로 방출하면 됩니다.
+현재 state를 기준으로 한 계산은 가능하면 `reduce(state:mutation:)`에서 처리합니다.
+`mutate(action:)`에서 현재 상태를 참고해야 하는 경우에는 `state`보다 `currentState`를 사용해 의도를 드러내는 편이 좋습니다.
 
 ## SwiftUI에서 사용하기
 
