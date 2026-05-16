@@ -1,5 +1,5 @@
 //
-//  SampleAppApp.swift
+//  SampleApp.swift
 //  SampleApp
 //
 //  Created by 김동현 on 5/16/26.
