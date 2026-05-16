@@ -187,6 +187,20 @@ UIKit에서는 `@Published state`를 Combine으로 구독해 필요한 값만 UI
 `mutate(action:)`은 `AsyncStream<Mutation>`을 반환합니다.
 그래서 하나의 action에서 여러 mutation을 시간 순서대로 방출할 수 있습니다.
 
+배열이 아니라 `AsyncStream`을 사용하는 이유는 중간 상태를 즉시 반영하기 위해서입니다.
+`[Mutation]`을 반환하는 구조에서는 비동기 작업이 모두 끝난 뒤 배열이 만들어지고, 그 다음 mutation들이 한 번에 처리되기 쉽습니다.
+반면 `AsyncStream`은 mutation이 준비되는 순간마다 하나씩 `yield`할 수 있습니다.
+
+예를 들어 새로고침에서는 로딩 시작을 먼저 반영하고, 네트워크 응답이 도착한 뒤 결과와 로딩 종료를 이어서 반영할 수 있습니다.
+
+```text
+배열 방식:
+버튼 탭 -> fetch 완료 대기 -> [setLoading(true), setItems, setLoading(false)] 처리
+
+AsyncStream 방식:
+버튼 탭 -> setLoading(true) 즉시 처리 -> fetch 완료 -> setItems -> setLoading(false)
+```
+
 ```swift
 func mutate(action: Action) -> AsyncStream<Mutation> {
     switch action {
