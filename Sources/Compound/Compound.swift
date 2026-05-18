@@ -66,10 +66,10 @@ public extension CompoundType where State: Equatable {
                 await MainActor.run { [weak self] in
                     guard let self else { return }
 
-                    let oldState = state
-                    let newState = reduce(state: oldState, reaction: reaction)
+                    let oldState = self.state
+                    let newState = self.reduce(state: oldState, reaction: reaction)
                     guard newState != oldState else { return }
-                    state = newState
+                    self.state = newState
                 }
             }
         }
