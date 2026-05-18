@@ -67,7 +67,8 @@ import Combine
 import Compound
 import Foundation
 
-final class CounterCompound: CompoundType {
+@Compound
+final class CounterCompound {
     enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
@@ -84,14 +85,7 @@ final class CounterCompound: CompoundType {
         var count = 0
     }
 
-    @MainActor
-    let _compoundRuntime = CompoundRuntimeStorage()
-
-    @MainActor
     @Published var state = State()
-
-    @MainActor
-    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -123,10 +117,9 @@ final class CounterCompound: CompoundType {
 ```
 
 동기적인 상태 변경은 `.just(...)`로 reaction 하나를 바로 방출하면 됩니다.
-`CompoundType`이 `Action`과 `Reaction`에 `Sendable`을 요구하므로, 단순 값 타입 예제에서는 이를 매번 명시하지 않아도 됩니다.
+`@Compound` 매크로는 `_compoundRuntime` 저장소와 `CompoundType` 채택을 자동으로 붙여줍니다.
 현재 state를 기준으로 한 계산은 가능하면 `reduce(state:reaction:)`에서 처리합니다.
 `react(action:)`에서 현재 상태를 참고해야 하는 경우에는 명시적인 메인 액터 hop을 고려하는 편이 좋습니다.
-현재는 매크로 도입 전 단계이므로, 구현체가 `let _compoundRuntime = CompoundRuntimeStorage()`를 직접 소유해야 합니다.
 
 ## SwiftUI에서 사용하기
 
@@ -159,6 +152,7 @@ struct CounterView: View {
 ```
 
 SwiftUI에서는 `@StateObject`나 `@ObservedObject`로 Compound를 소유하고, 화면 이벤트에서 `send(_:)`를 호출합니다.
+현재 기본 관찰 모델은 `ObservableObject + @Published var state`입니다.
 
 ## UIKit에서 사용하기
 
@@ -217,18 +211,15 @@ func react(action: Action) -> AsyncStream<Reaction> {
     case .refresh:
         return .concat(
             .just(.setLoading(true)),
-            AsyncStream { continuation in
-                Task {
-                    do {
-                        let items = try await service.fetchItems()
-                        continuation.yield(.setItems(items))
-                    } catch {
-                        continuation.yield(.setErrorMessage(error.localizedDescription))
-                    }
-
-                    continuation.yield(.setLoading(false))
-                    continuation.finish()
+            .run { send in
+                do {
+                    let items = try await service.fetchItems()
+                    await send(.setItems(items))
+                } catch {
+                    await send(.setErrorMessage(error.localizedDescription))
                 }
+
+                await send(.setLoading(false))
             }
         )
     }
@@ -238,6 +229,8 @@ func react(action: Action) -> AsyncStream<Reaction> {
 기본 조합 도구는 세 가지입니다.
 
 - `.just(reaction)`: reaction 하나를 즉시 방출하고 종료합니다.
+- `.run { send in ... }`: 비동기 작업 안에서 여러 reaction을 원하는 타이밍에 방출합니다.
+- `.delay(duration, then: reaction)`: 일정 시간 뒤 reaction 하나를 방출하고 종료합니다.
 - `.concat(a, b, c)`: stream을 순서대로 이어 실행합니다.
 - `.merge(a, b, c)`: stream을 동시에 실행하고 들어오는 순서대로 방출합니다.
 
@@ -279,6 +272,44 @@ func react(action: Action) -> AsyncStream<Reaction> {
 ```
 
 Compound 인스턴스가 해제되면 남아 있는 action task는 자동 취소됩니다.
+
+## `@Compound`가 해주는 일
+
+`@Compound`를 붙이면 사용자는 핵심 선언만 작성하고, 런타임 저장소 보일러플레이트는 매크로가 맡습니다.
+
+```swift
+@Compound
+final class CounterCompound {
+    enum Action { case increaseButtonTapped }
+    enum Reaction { case increase }
+    struct State: Equatable { var count = 0 }
+
+    @Published var state = State()
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        .just(.increase)
+    }
+
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+        newState.count += 1
+        return newState
+    }
+}
+```
+
+개념적으로는 아래 코드가 생성됩니다.
+
+```swift
+extension CounterCompound {
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+}
+
+extension CounterCompound: CompoundType {}
+```
+
+즉 사용자는 `Action`, `Reaction`, `State`, `@Published var state`, `react`, `reduce`만 선언하면 됩니다.
 
 ## 동작 파이프라인
 
