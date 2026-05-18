@@ -5,10 +5,11 @@
 //  Created by 김동현 on 5/16/26.
 //
 
-import Combine
 import Compound
+import Combine
 
-final class SwiftUICounterCompound: CompoundType {
+@Compound
+final class SwiftUICounterCompound {
     enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
@@ -25,14 +26,7 @@ final class SwiftUICounterCompound: CompoundType {
         var count = 0
     }
 
-    @MainActor
-    let _compoundRuntime = CompoundRuntimeStorage()
-
-    @MainActor
     @Published var state = State()
-
-    @MainActor
-    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -45,7 +39,6 @@ final class SwiftUICounterCompound: CompoundType {
         }
     }
 
-    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 

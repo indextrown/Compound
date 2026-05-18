@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Compound}",
+            "name": "Debug CompoundClient",
+            "target": "CompoundClient",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug CompoundClient"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Compound}",
+            "name": "Release CompoundClient",
+            "target": "CompoundClient",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release CompoundClient"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Compound}",
+            "name": "Debug CompoundMacroClient",
+            "target": "CompoundMacroClient",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug CompoundMacroClient"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Compound}",
+            "name": "Release CompoundMacroClient",
+            "target": "CompoundMacroClient",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release CompoundMacroClient"
+        }
+    ]
+}

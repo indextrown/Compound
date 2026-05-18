@@ -9,7 +9,8 @@ import Combine
 import Compound
 import Foundation
 
-final class SwiftUIConcatCompound: CompoundType {
+@Compound
+final class SwiftUIConcatCompound {
     enum Action {
         case refreshButtonTapped
     }
@@ -26,14 +27,7 @@ final class SwiftUIConcatCompound: CompoundType {
         var statusMessage = "Refresh를 눌러 concat sequence를 시작해보세요."
     }
 
-    @MainActor
-    let _compoundRuntime = CompoundRuntimeStorage()
-
-    @MainActor
     @Published var state = State()
-
-    @MainActor
-    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -46,7 +40,6 @@ final class SwiftUIConcatCompound: CompoundType {
         }
     }
 
-    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
