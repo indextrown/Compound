@@ -9,7 +9,7 @@ import Combine
 import Compound
 import Foundation
 
-final class SwiftUIConcatCompound: Compound {
+final class SwiftUIConcatCompound: CompoundType {
     enum Action {
         case refreshButtonTapped
     }
@@ -26,21 +26,27 @@ final class SwiftUIConcatCompound: Compound {
         var statusMessage = "Refresh를 눌러 concat sequence를 시작해보세요."
     }
 
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
     @Published var state = State()
+
+    @MainActor
+    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .refreshButtonTapped:
-            let nextCount = currentState.refreshCount + 1
-
             return .concat(
                 .just(.setLoading(true)),
-                delayedRefreshStream(nextCount: nextCount),
+                delayedRefreshStream(),
                 .just(.setLoading(false))
             )
         }
     }
 
+    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
@@ -56,9 +62,10 @@ final class SwiftUIConcatCompound: Compound {
         return newState
     }
 
-    private func delayedRefreshStream(nextCount: Int) -> AsyncStream<Reaction> {
+    private func delayedRefreshStream() -> AsyncStream<Reaction> {
         AsyncStream { continuation in
             let task = Task {
+                let nextCount = await MainActor.run { currentState.refreshCount + 1 }
                 try? await Task.sleep(nanoseconds: 800_000_000)
                 continuation.yield(.setRefreshCount(nextCount))
                 continuation.yield(.setStatusMessage("Refresh #\(nextCount) completed"))

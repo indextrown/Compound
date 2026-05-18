@@ -8,7 +8,8 @@
 import Combine
 import Compound
 
-final class UIKitCounterCompound: Compound {
+extension UIKitCounterCompound: CompoundType {}
+final class UIKitCounterCompound {
     enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
@@ -16,34 +17,49 @@ final class UIKitCounterCompound: Compound {
     }
 
     enum Reaction {
-        case setCount(Int)
+        case increase
+        case decrease
+        case reset
     }
 
     struct State: Equatable {
         var count = 0
     }
 
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
     @Published var state = State()
+
+    @MainActor
+    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .increaseButtonTapped:
-            return .just(.setCount(currentState.count + 1))
+            return .just(.increase)
         case .decreaseButtonTapped:
-            return .just(.setCount(currentState.count - 1))
+            return .just(.decrease)
         case .resetButtonTapped:
-            return .just(.setCount(0))
+            return .just(.reset)
         }
     }
 
+    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
         switch reaction {
-        case .setCount(let count):
-            newState.count = count
+        case .increase:
+            newState.count += 1
+        case .decrease:
+            newState.count -= 1
+        case .reset:
+            newState.count = 0
         }
 
         return newState
     }
 }
+
