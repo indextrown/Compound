@@ -54,8 +54,23 @@ final class SwiftUIConcatCompound {
 
         return newState
     }
-
+    
+    // convenience
     private func delayedRefreshStream() -> AsyncStream<Reaction> {
+        .run { send in
+            let nextCount = await MainActor.run {
+                self.currentState.refreshCount + 1
+            }
+
+            try await Task.sleep(for: .milliseconds(800))
+
+            await send(.setRefreshCount(nextCount))
+            await send(.setStatusMessage("Refresh #\(nextCount) completed"))
+        }
+    }
+    
+    // default
+    private func delayedRefreshStreamDefault() -> AsyncStream<Reaction> {
         AsyncStream { continuation in
             let task = Task {
                 let nextCount = await MainActor.run { currentState.refreshCount + 1 }
