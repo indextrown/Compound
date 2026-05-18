@@ -72,6 +72,19 @@ struct ListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+
+                NavigationLink {
+                    SwiftUICounterNoMacroView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SwiftUI Counter No Macro")
+                            .font(.headline)
+                        Text("매크로 없이 CompoundType과 _compoundRuntime을 직접 선언하는 버전입니다.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
             }
             .navigationTitle("Compound Examples")
         }

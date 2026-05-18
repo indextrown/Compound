@@ -1,15 +1,14 @@
 //
-//  UIKitCounterCompound.swift
+//  SwiftUICounterNoMacroCompound.swift
 //  SampleApp
 //
-//  Created by 김동현 on 5/16/26.
+//  Created by 김동현 on 5/18/26.
 //
 
 import Combine
 import Compound
 
-@Compound
-final class UIKitCounterCompound {
+final class SwiftUICounterNoMacroCompound: CompoundType {
     enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
@@ -26,7 +25,14 @@ final class UIKitCounterCompound {
         var count = 0
     }
 
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
     @Published var state = State()
+
+    @MainActor
+    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -39,6 +45,7 @@ final class UIKitCounterCompound {
         }
     }
 
+    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 

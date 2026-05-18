@@ -67,7 +67,7 @@ import Combine
 import Compound
 import Foundation
 
-final class CounterCompound: Compound {
+final class CounterCompound: CompoundType {
     enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
@@ -84,7 +84,14 @@ final class CounterCompound: Compound {
         var count = 0
     }
 
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
     @Published var state = State()
+
+    @MainActor
+    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -97,6 +104,7 @@ final class CounterCompound: Compound {
         }
     }
 
+    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
@@ -115,9 +123,10 @@ final class CounterCompound: Compound {
 ```
 
 동기적인 상태 변경은 `.just(...)`로 reaction 하나를 바로 방출하면 됩니다.
-`Compound`가 `Action`과 `Reaction`에 `Sendable`을 요구하므로, 단순 값 타입 예제에서는 이를 매번 명시하지 않아도 됩니다.
+`CompoundType`이 `Action`과 `Reaction`에 `Sendable`을 요구하므로, 단순 값 타입 예제에서는 이를 매번 명시하지 않아도 됩니다.
 현재 state를 기준으로 한 계산은 가능하면 `reduce(state:reaction:)`에서 처리합니다.
-`react(action:)`에서 현재 상태를 참고해야 하는 경우에는 `state`보다 `currentState`를 사용해 의도를 드러내는 편이 좋습니다.
+`react(action:)`에서 현재 상태를 참고해야 하는 경우에는 명시적인 메인 액터 hop을 고려하는 편이 좋습니다.
+현재는 매크로 도입 전 단계이므로, 구현체가 `let _compoundRuntime = CompoundRuntimeStorage()`를 직접 소유해야 합니다.
 
 ## SwiftUI에서 사용하기
 

@@ -24,8 +24,7 @@ private actor TerminationProbe {
     }
 }
 
-@MainActor
-private final class CancellableActionCompound: Compound {
+private final class CancellableActionCompound: CompoundType {
     enum Action: Sendable {
         case neverEnding
         case controlled
@@ -40,11 +39,16 @@ private final class CancellableActionCompound: Compound {
         var value = 0
     }
 
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
     @Published var state = State()
 
     private let terminationProbe: TerminationProbe?
     private var controlledContinuation: AsyncStream<Reaction>.Continuation?
 
+    @MainActor
     init(terminationProbe: TerminationProbe? = nil) {
         self.terminationProbe = terminationProbe
     }
@@ -53,6 +57,8 @@ private final class CancellableActionCompound: Compound {
         switch action {
         case .neverEnding:
             return AsyncStream { continuation in
+                let terminationProbe = self.terminationProbe
+
                 Task {
                     await terminationProbe?.markStarted()
                 }
@@ -66,6 +72,7 @@ private final class CancellableActionCompound: Compound {
 
         case .controlled:
             return AsyncStream { continuation in
+                let terminationProbe = self.terminationProbe
                 controlledContinuation = continuation
                 continuation.yield(.setValue(1))
 
@@ -81,6 +88,7 @@ private final class CancellableActionCompound: Compound {
         }
     }
 
+    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 

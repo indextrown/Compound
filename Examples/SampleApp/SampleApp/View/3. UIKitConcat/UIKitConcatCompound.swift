@@ -9,7 +9,8 @@ import Combine
 import Compound
 import Foundation
 
-final class UIKitConcatCompound: Compound {
+@Compound
+final class UIKitConcatCompound {
     enum Action {
         case refreshButtonTapped
     }
@@ -31,11 +32,9 @@ final class UIKitConcatCompound: Compound {
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .refreshButtonTapped:
-            let nextCount = currentState.refreshCount + 1
-
             return .concat(
                 .just(.setLoading(true)),
-                delayedRefreshStream(nextCount: nextCount),
+                delayedRefreshStream(),
                 .just(.setLoading(false))
             )
         }
@@ -56,9 +55,10 @@ final class UIKitConcatCompound: Compound {
         return newState
     }
 
-    private func delayedRefreshStream(nextCount: Int) -> AsyncStream<Reaction> {
+    private func delayedRefreshStream() -> AsyncStream<Reaction> {
         AsyncStream { continuation in
             let task = Task {
+                let nextCount = await MainActor.run { currentState.refreshCount + 1 }
                 try? await Task.sleep(nanoseconds: 800_000_000)
                 continuation.yield(.setRefreshCount(nextCount))
                 continuation.yield(.setStatusMessage("Refresh #\(nextCount) completed"))

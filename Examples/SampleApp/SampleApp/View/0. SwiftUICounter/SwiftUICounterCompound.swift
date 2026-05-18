@@ -5,10 +5,11 @@
 //  Created by 김동현 on 5/16/26.
 //
 
-import Combine
 import Compound
+import Combine
 
-final class SwiftUICounterCompound: Compound {
+@Compound
+final class SwiftUICounterCompound {
     enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
@@ -16,7 +17,9 @@ final class SwiftUICounterCompound: Compound {
     }
 
     enum Reaction {
-        case setCount(Int)
+        case increase
+        case decrease
+        case reset
     }
 
     struct State: Equatable {
@@ -28,11 +31,11 @@ final class SwiftUICounterCompound: Compound {
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .increaseButtonTapped:
-            return .just(.setCount(currentState.count + 1))
+            return .just(.increase)
         case .decreaseButtonTapped:
-            return .just(.setCount(currentState.count - 1))
+            return .just(.decrease)
         case .resetButtonTapped:
-            return .just(.setCount(0))
+            return .just(.reset)
         }
     }
 
@@ -40,8 +43,12 @@ final class SwiftUICounterCompound: Compound {
         var newState = state
 
         switch reaction {
-        case .setCount(let count):
-            newState.count = count
+        case .increase:
+            newState.count += 1
+        case .decrease:
+            newState.count -= 1
+        case .reset:
+            newState.count = 0
         }
 
         return newState

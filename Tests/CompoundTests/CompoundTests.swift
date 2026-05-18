@@ -3,8 +3,7 @@ import Foundation
 import Testing
 @testable import Compound
 
-@MainActor
-private final class SerialActionCompound: Compound {
+private final class SerialActionCompound: CompoundType {
     enum Action: Sendable {
         case refresh
         case reset
@@ -20,7 +19,14 @@ private final class SerialActionCompound: Compound {
         var items: [String] = []
     }
 
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
     @Published var state = State()
+
+    @MainActor
+    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -41,6 +47,7 @@ private final class SerialActionCompound: Compound {
         }
     }
 
+    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
@@ -55,7 +62,7 @@ private final class SerialActionCompound: Compound {
     }
 }
 
-private final class CountingCompound: Compound {
+private final class CountingCompound: CompoundType {
     enum Action: Sendable {
         case sameValue
     }
@@ -68,12 +75,20 @@ private final class CountingCompound: Compound {
         var count = 0
     }
 
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
     @Published var state = State()
+
+    @MainActor
+    init() {}
 
     func react(action: Action) -> AsyncStream<Reaction> {
         .just(.setCount(0))
     }
 
+    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
