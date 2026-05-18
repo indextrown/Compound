@@ -96,11 +96,11 @@ private enum CompoundActionRuntime {
 /// 상태와 action 처리 로직을 함께 소유하는 단방향 상태 타입입니다.
 ///
 /// ``Compound``는 현재 ``State``를 소유하고, 뷰 계층으로부터 ``Action``을 받으며,
-/// ``mutate(action:)``에서 하나 이상의 ``Mutation``을 만들고,
-/// ``reduce(state:mutation:)``를 통해 새로운 상태로 전이합니다.
+/// ``react(action:)``에서 하나 이상의 ``Reaction``을 만들고,
+/// ``reduce(state:reaction:)``를 통해 새로운 상태로 전이합니다.
 public protocol Compound: AnyObject, ObservableObject {
     associatedtype Action: Sendable
-    associatedtype Mutation: Sendable
+    associatedtype Reaction: Sendable
     associatedtype State: Equatable
     
     /// UI 계층이 관찰하는 현재 상태입니다.
@@ -114,21 +114,21 @@ public protocol Compound: AnyObject, ObservableObject {
     @MainActor
     var currentState: State { get }
 
-    /// 주어진 action에 대한 mutation sequence를 만듭니다.
+    /// 주어진 action에 대한 reaction sequence를 만듭니다.
     ///
     /// 이 메서드는 side effect 경계입니다.
-    /// 동기 action은 하나의 mutation을 즉시 내보내는 stream을 반환할 수 있고,
-    /// 비동기 action은 로딩 시작, 성공, 실패처럼 시간에 따라 여러 mutation을 순서대로 내보낼 수 있습니다.
+    /// 동기 action은 하나의 reaction을 즉시 내보내는 stream을 반환할 수 있고,
+    /// 비동기 action은 로딩 시작, 성공, 실패처럼 시간에 따라 여러 reaction을 순서대로 내보낼 수 있습니다.
     @MainActor
-    func mutate(action: Action) -> AsyncStream<Mutation>
+    func react(action: Action) -> AsyncStream<Reaction>
 
-    /// mutation을 현재 상태에 적용해 다음 상태를 만듭니다.
+    /// reaction을 현재 상태에 적용해 다음 상태를 만듭니다.
     ///
     /// 이 메서드는 상태 전이 경계입니다.
     /// 여기서는 side effect를 피하고, 입력이 같으면 항상 같은 결과를 돌려주는
     /// 예측 가능하고 테스트 가능한 구현을 유지하는 편이 좋습니다.
     @MainActor
-    func reduce(state: State, mutation: Mutation) -> State
+    func reduce(state: State, reaction: Reaction) -> State
 }
 
 public extension Compound {
@@ -141,7 +141,7 @@ public extension Compound where State: Equatable {
     /// action을 단방향 상태 흐름으로 보냅니다.
     ///
     /// 같은 인스턴스에 들어오는 action은 순차적으로 처리됩니다.
-    /// 즉, 하나의 action이 만드는 mutation sequence가 모두 상태에 반영된 뒤 다음 action이 처리됩니다.
+    /// 즉, 하나의 action이 만드는 reaction sequence가 모두 상태에 반영된 뒤 다음 action이 처리됩니다.
     /// 또한 reduce 결과가 이전 상태와 다를 때만 상태를 다시 대입합니다.
     @MainActor
     func send(_ action: Action) {
@@ -161,14 +161,14 @@ public extension Compound where State: Equatable {
 
             await previousTask?.value
             guard !Task.isCancelled else { return }
-            guard let stream = self?.mutate(action: action) else { return }
+            guard let stream = self?.react(action: action) else { return }
 
-            for await mutation in stream {
+            for await reaction in stream {
                 guard !Task.isCancelled else { return }
                 guard let self else { return }
 
                 let oldState = state
-                let newState = reduce(state: oldState, mutation: mutation)
+                let newState = reduce(state: oldState, reaction: reaction)
                 guard newState != oldState else { continue }
                 state = newState
             }

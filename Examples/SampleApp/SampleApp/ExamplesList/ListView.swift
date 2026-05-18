@@ -48,7 +48,7 @@ struct ListView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("SwiftUI Concat Refresh")
                             .font(.headline)
-                        Text("setLoading(true) -> 결과 mutation -> setLoading(false)를 순차 반영합니다.")
+                        Text("setLoading(true) -> 결과 reaction -> setLoading(false)를 순차 반영합니다.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -66,7 +66,7 @@ struct ListView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("UIKit Concat Refresh")
                             .font(.headline)
-                        Text("같은 concat mutation sequence를 UIKit ViewController에서 Combine으로 구독합니다.")
+                        Text("같은 concat reaction sequence를 UIKit ViewController에서 Combine으로 구독합니다.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }

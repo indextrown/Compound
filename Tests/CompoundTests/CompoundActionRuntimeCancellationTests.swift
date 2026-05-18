@@ -32,7 +32,7 @@ private final class CancellableActionCompound: Compound {
         case setValue(Int)
     }
 
-    enum Mutation: Sendable {
+    enum Reaction: Sendable {
         case setValue(Int)
     }
 
@@ -43,13 +43,13 @@ private final class CancellableActionCompound: Compound {
     @Published var state = State()
 
     private let terminationProbe: TerminationProbe?
-    private var controlledContinuation: AsyncStream<Mutation>.Continuation?
+    private var controlledContinuation: AsyncStream<Reaction>.Continuation?
 
     init(terminationProbe: TerminationProbe? = nil) {
         self.terminationProbe = terminationProbe
     }
 
-    func mutate(action: Action) -> AsyncStream<Mutation> {
+    func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .neverEnding:
             return AsyncStream { continuation in
@@ -81,10 +81,10 @@ private final class CancellableActionCompound: Compound {
         }
     }
 
-    func reduce(state: State, mutation: Mutation) -> State {
+    func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
-        switch mutation {
+        switch reaction {
         case .setValue(let value):
             newState.value = value
         }
@@ -153,7 +153,7 @@ struct CompoundActionRuntimeCancellationTests {
         #expect(compound.state.value == 2)
     }
 
-    @Test("cancelAllActions()는 실행 중이던 stream의 추가 mutation 반영을 중단한다")
+    @Test("cancelAllActions()는 실행 중이던 stream의 추가 reaction 반영을 중단한다")
     @MainActor
     func cancelAllActionsStopsApplyingAdditionalMutationsFromRunningStream() async throws {
         let compound = CancellableActionCompound()

@@ -10,7 +10,7 @@ private final class SerialActionCompound: Compound {
         case reset
     }
 
-    enum Mutation: Sendable {
+    enum Reaction: Sendable {
         case setLoading(Bool)
         case setItems([String])
     }
@@ -22,7 +22,7 @@ private final class SerialActionCompound: Compound {
 
     @Published var state = State()
 
-    func mutate(action: Action) -> AsyncStream<Mutation> {
+    func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .refresh:
             return AsyncStream { continuation in
@@ -41,10 +41,10 @@ private final class SerialActionCompound: Compound {
         }
     }
 
-    func reduce(state: State, mutation: Mutation) -> State {
+    func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
-        switch mutation {
+        switch reaction {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
         case .setItems(let items):
@@ -60,7 +60,7 @@ private final class CountingCompound: Compound {
         case sameValue
     }
 
-    enum Mutation: Sendable {
+    enum Reaction: Sendable {
         case setCount(Int)
     }
 
@@ -70,14 +70,14 @@ private final class CountingCompound: Compound {
 
     @Published var state = State()
 
-    func mutate(action: Action) -> AsyncStream<Mutation> {
+    func react(action: Action) -> AsyncStream<Reaction> {
         .just(.setCount(0))
     }
 
-    func reduce(state: State, mutation: Mutation) -> State {
+    func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
-        switch mutation {
+        switch reaction {
         case .setCount(let count):
             newState.count = count
         }
@@ -88,7 +88,7 @@ private final class CountingCompound: Compound {
 
 @Suite("Compound")
 struct CompoundTests {
-    @Test("send(_:)는 이전 action의 mutation sequence가 끝난 뒤 다음 action을 처리한다")
+    @Test("send(_:)는 이전 action의 reaction sequence가 끝난 뒤 다음 action을 처리한다")
     @MainActor
     func sendProcessesActionsSequentially() async throws {
         let compound = SerialActionCompound()

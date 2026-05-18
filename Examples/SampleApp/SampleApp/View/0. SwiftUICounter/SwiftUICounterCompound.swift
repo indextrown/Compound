@@ -9,13 +9,13 @@ import Combine
 import Compound
 
 final class SwiftUICounterCompound: Compound {
-    enum Action: Sendable {
+    enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
         case resetButtonTapped
     }
 
-    enum Mutation: Sendable {
+    enum Reaction {
         case setCount(Int)
     }
 
@@ -25,7 +25,7 @@ final class SwiftUICounterCompound: Compound {
 
     @Published var state = State()
 
-    func mutate(action: Action) -> AsyncStream<Mutation> {
+    func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .increaseButtonTapped:
             return .just(.setCount(currentState.count + 1))
@@ -36,10 +36,10 @@ final class SwiftUICounterCompound: Compound {
         }
     }
 
-    func reduce(state: State, mutation: Mutation) -> State {
+    func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
-        switch mutation {
+        switch reaction {
         case .setCount(let count):
             newState.count = count
         }

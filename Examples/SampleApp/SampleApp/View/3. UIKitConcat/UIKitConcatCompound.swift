@@ -10,11 +10,11 @@ import Compound
 import Foundation
 
 final class UIKitConcatCompound: Compound {
-    enum Action: Sendable {
+    enum Action {
         case refreshButtonTapped
     }
 
-    enum Mutation: Sendable {
+    enum Reaction {
         case setLoading(Bool)
         case setRefreshCount(Int)
         case setStatusMessage(String)
@@ -28,7 +28,7 @@ final class UIKitConcatCompound: Compound {
 
     @Published var state = State()
 
-    func mutate(action: Action) -> AsyncStream<Mutation> {
+    func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .refreshButtonTapped:
             let nextCount = currentState.refreshCount + 1
@@ -41,10 +41,10 @@ final class UIKitConcatCompound: Compound {
         }
     }
 
-    func reduce(state: State, mutation: Mutation) -> State {
+    func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
-        switch mutation {
+        switch reaction {
         case .setLoading(let isLoading):
             newState.isLoading = isLoading
         case .setRefreshCount(let refreshCount):
@@ -56,7 +56,7 @@ final class UIKitConcatCompound: Compound {
         return newState
     }
 
-    private func delayedRefreshStream(nextCount: Int) -> AsyncStream<Mutation> {
+    private func delayedRefreshStream(nextCount: Int) -> AsyncStream<Reaction> {
         AsyncStream { continuation in
             let task = Task {
                 try? await Task.sleep(nanoseconds: 800_000_000)

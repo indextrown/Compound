@@ -2,7 +2,7 @@
 
 Compound는 SwiftUI와 UIKit에서 사용할 수 있는 단방향 상태 관리 라이브러리입니다.
 
-화면은 `Action`을 보내고, Compound는 `Action`을 `Mutation` stream으로 바꾼 뒤, 각 `Mutation`을 `State`에 순서대로 반영합니다.
+화면은 `Action`을 보내고, Compound는 `Action`을 `Reaction` stream으로 바꾼 뒤, 각 `Reaction`을 `State`에 순서대로 반영합니다.
 
 ## 목차
 
@@ -11,7 +11,7 @@ Compound는 SwiftUI와 UIKit에서 사용할 수 있는 단방향 상태 관리 
 - [기본 사용법](#기본-사용법)
 - [SwiftUI에서 사용하기](#swiftui에서-사용하기)
 - [UIKit에서 사용하기](#uikit에서-사용하기)
-- [Mutation Stream 조합](#mutation-stream-조합)
+- [Reaction Stream 조합](#reaction-stream-조합)
 - [취소 정책](#취소-정책)
 - [동작 파이프라인](#동작-파이프라인)
 
@@ -20,15 +20,15 @@ Compound는 SwiftUI와 UIKit에서 사용할 수 있는 단방향 상태 관리 
 Compound는 화면 상태와 상태 변경 로직을 하나의 객체에 둡니다.
 
 - `Action`: 화면에서 들어오는 사용자 의도입니다.
-- `Mutation`: 상태를 어떻게 바꿀지 나타내는 값입니다.
+- `Reaction`: 상태를 어떻게 바꿀지 나타내는 값입니다.
 - `State`: 화면이 관찰하는 현재 상태입니다.
-- `mutate(action:)`: action을 하나 이상의 mutation으로 바꿉니다.
-- `reduce(state:mutation:)`: mutation을 state에 적용해 다음 state를 만듭니다.
+- `react(action:)`: action을 하나 이상의 reaction으로 바꿉니다.
+- `reduce(state:reaction:)`: reaction을 state에 적용해 다음 state를 만듭니다.
 
 기본 흐름은 아래와 같습니다.
 
 ```text
-View -> send(Action) -> mutate(Action) -> AsyncStream<Mutation> -> reduce(State, Mutation) -> State
+View -> send(Action) -> react(Action) -> AsyncStream<Reaction> -> reduce(State, Reaction) -> State
 ```
 
 ## 설치
@@ -68,13 +68,13 @@ import Compound
 import Foundation
 
 final class CounterCompound: Compound {
-    enum Action: Sendable {
+    enum Action {
         case increaseButtonTapped
         case decreaseButtonTapped
         case resetButtonTapped
     }
 
-    enum Mutation: Sendable {
+    enum Reaction {
         case increaseCount
         case decreaseCount
         case setCount(Int)
@@ -86,7 +86,7 @@ final class CounterCompound: Compound {
 
     @Published var state = State()
 
-    func mutate(action: Action) -> AsyncStream<Mutation> {
+    func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
         case .increaseButtonTapped:
             return .just(.increaseCount)
@@ -97,10 +97,10 @@ final class CounterCompound: Compound {
         }
     }
 
-    func reduce(state: State, mutation: Mutation) -> State {
+    func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
-        switch mutation {
+        switch reaction {
         case .increaseCount:
             newState.count += 1
         case .decreaseCount:
@@ -114,9 +114,10 @@ final class CounterCompound: Compound {
 }
 ```
 
-동기적인 상태 변경은 `.just(...)`로 mutation 하나를 바로 방출하면 됩니다.
-현재 state를 기준으로 한 계산은 가능하면 `reduce(state:mutation:)`에서 처리합니다.
-`mutate(action:)`에서 현재 상태를 참고해야 하는 경우에는 `state`보다 `currentState`를 사용해 의도를 드러내는 편이 좋습니다.
+동기적인 상태 변경은 `.just(...)`로 reaction 하나를 바로 방출하면 됩니다.
+`Compound`가 `Action`과 `Reaction`에 `Sendable`을 요구하므로, 단순 값 타입 예제에서는 이를 매번 명시하지 않아도 됩니다.
+현재 state를 기준으로 한 계산은 가능하면 `reduce(state:reaction:)`에서 처리합니다.
+`react(action:)`에서 현재 상태를 참고해야 하는 경우에는 `state`보다 `currentState`를 사용해 의도를 드러내는 편이 좋습니다.
 
 ## SwiftUI에서 사용하기
 
@@ -182,14 +183,14 @@ final class CounterViewController: UIViewController {
 
 UIKit에서는 `@Published state`를 Combine으로 구독해 필요한 값만 UI에 반영합니다.
 
-## Mutation Stream 조합
+## Reaction Stream 조합
 
-`mutate(action:)`은 `AsyncStream<Mutation>`을 반환합니다.
-그래서 하나의 action에서 여러 mutation을 시간 순서대로 방출할 수 있습니다.
+`react(action:)`은 `AsyncStream<Reaction>`을 반환합니다.
+그래서 하나의 action에서 여러 reaction을 시간 순서대로 방출할 수 있습니다.
 
 배열이 아니라 `AsyncStream`을 사용하는 이유는 중간 상태를 즉시 반영하기 위해서입니다.
-`[Mutation]`을 반환하는 구조에서는 비동기 작업이 모두 끝난 뒤 배열이 만들어지고, 그 다음 mutation들이 한 번에 처리되기 쉽습니다.
-반면 `AsyncStream`은 mutation이 준비되는 순간마다 하나씩 `yield`할 수 있습니다.
+`[Reaction]`을 반환하는 구조에서는 비동기 작업이 모두 끝난 뒤 배열이 만들어지고, 그 다음 reaction들이 한 번에 처리되기 쉽습니다.
+반면 `AsyncStream`은 reaction이 준비되는 순간마다 하나씩 `yield`할 수 있습니다.
 
 예를 들어 새로고침에서는 로딩 시작을 먼저 반영하고, 네트워크 응답이 도착한 뒤 결과와 로딩 종료를 이어서 반영할 수 있습니다.
 
@@ -202,7 +203,7 @@ AsyncStream 방식:
 ```
 
 ```swift
-func mutate(action: Action) -> AsyncStream<Mutation> {
+func react(action: Action) -> AsyncStream<Reaction> {
     switch action {
     case .refresh:
         return .concat(
@@ -227,17 +228,17 @@ func mutate(action: Action) -> AsyncStream<Mutation> {
 
 기본 조합 도구는 세 가지입니다.
 
-- `.just(mutation)`: mutation 하나를 즉시 방출하고 종료합니다.
+- `.just(reaction)`: reaction 하나를 즉시 방출하고 종료합니다.
 - `.concat(a, b, c)`: stream을 순서대로 이어 실행합니다.
 - `.merge(a, b, c)`: stream을 동시에 실행하고 들어오는 순서대로 방출합니다.
 
 상태 전이 순서가 중요하면 `concat`을 우선 사용하세요.
-`merge`는 입력 순서가 아니라 완료/도착 순서대로 mutation이 반영됩니다.
+`merge`는 입력 순서가 아니라 완료/도착 순서대로 reaction이 반영됩니다.
 
 ## 취소 정책
 
 같은 Compound 인스턴스에 들어온 action은 순차 처리됩니다.
-앞 action의 mutation stream이 끝나야 다음 action이 이어집니다.
+앞 action의 reaction stream이 끝나야 다음 action이 이어집니다.
 
 Firebase snapshot, socket, timer처럼 끝나지 않는 stream을 다룰 때는 action queue가 막힐 수 있습니다.
 이럴 때 `cancelAllActions()`로 현재 실행 중이거나 대기 중인 action을 모두 취소할 수 있습니다.
@@ -252,7 +253,7 @@ compound.cancelAllActions()
 long-living stream은 `onTermination`에서 외부 자원을 정리해야 합니다.
 
 ```swift
-func mutate(action: Action) -> AsyncStream<Mutation> {
+func react(action: Action) -> AsyncStream<Reaction> {
     switch action {
     case .observeMessages:
         return AsyncStream { continuation in
@@ -280,14 +281,14 @@ Compound 인스턴스가 해제되면 남아 있는 action task는 자동 취소
 flowchart LR
     View["View<br/>SwiftUI / UIKit"]
     Send["send(Action)<br/>순차 처리 queue"]
-    Mutate["mutate(Action)<br/>side effect 경계"]
-    Stream["AsyncStream&lt;Mutation&gt;<br/>just / concat / merge"]
-    Reduce["reduce(State, Mutation)<br/>상태 전이 경계"]
+    React["react(Action)<br/>side effect 경계"]
+    Stream["AsyncStream&lt;Reaction&gt;<br/>just / concat / merge"]
+    Reduce["reduce(State, Reaction)<br/>상태 전이 경계"]
     State["@Published state<br/>MainActor"]
 
     View --> Send
-    Send --> Mutate
-    Mutate --> Stream
+    Send --> React
+    React --> Stream
     Stream --> Reduce
     Reduce --> State
     State -. publish .-> View
