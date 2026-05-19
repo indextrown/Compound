@@ -1,4 +1,5 @@
 import SwiftCompilerPlugin
+import SwiftDiagnostics
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
@@ -49,6 +50,15 @@ private extension VariableDeclSyntax {
     }
 }
 
+private extension DeclGroupSyntax {
+    func hasAttribute(named name: String) -> Bool {
+        attributes.contains { element in
+            guard case .attribute(let attribute) = element else { return false }
+            return attribute.attributeName.trimmedDescription == name
+        }
+    }
+}
+
 private extension MemberBlockItemListSyntax {
     func containsTopLevelMember(named name: String) -> Bool {
         contains { item in
@@ -62,6 +72,22 @@ private extension MemberBlockItemListSyntax {
             }
             return false
         }
+    }
+}
+
+private struct MissingFlatAccessTypeAnnotationMessage: DiagnosticMessage {
+    let propertyName: String
+
+    var message: String {
+        "`@ObservableState` property '\(propertyName)' needs an explicit type annotation to generate flat access on the compound"
+    }
+
+    var diagnosticID: MessageID {
+        MessageID(domain: "CompoundMacro", id: "missing-flat-access-type-annotation")
+    }
+
+    var severity: DiagnosticSeverity {
+        .warning
     }
 }
 
@@ -94,13 +120,25 @@ public struct CompoundMacro: MemberMacro, ExtensionMacro {
             return members
         }
 
+        let isObservableState = stateDecl.hasAttribute(named: "ObservableState")
+
         // 현재는 `State`의 top-level stored property만 대상으로 삼습니다.
         // nested flatten이나 computed property forwarding은 아직 범위 밖입니다.
         for item in stateDecl.memberBlock.members {
             guard let variable = item.decl.as(VariableDeclSyntax.self) else { continue }
             guard variable.isStoredInstanceVarForFlatAccess else { continue }
             guard let name = variable.flatAccessPropertyName else { continue }
-            guard let typeSource = variable.flatAccessPropertyTypeSource else { continue }
+            guard let typeSource = variable.flatAccessPropertyTypeSource else {
+                if isObservableState {
+                    context.diagnose(
+                        Diagnostic(
+                            node: Syntax(variable),
+                            message: MissingFlatAccessTypeAnnotationMessage(propertyName: name)
+                        )
+                    )
+                }
+                continue
+            }
             guard !classDecl.memberBlock.members.containsTopLevelMember(named: name) else { continue }
 
             members.append(

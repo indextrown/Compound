@@ -5,11 +5,11 @@
 //  Created by 김동현 on 5/19/26.
 //
 
-import SwiftUI
 import Compound
+import SwiftUI
 
 struct SwiftUIObservableStateProbeView: View {
-    @StateObject private var compound = SwiftUIObservableStateProbeCompound()
+    @State private var compound = SwiftUIObservableStateProbeCompound()
 
     var body: some View {
         let _ = Self._printChanges()
@@ -19,64 +19,48 @@ struct SwiftUIObservableStateProbeView: View {
                 Text("ObservableState Probe")
                     .font(.title2.weight(.semibold))
 
-                Text("기존 `compound.state.xxx` 경로와 새 `compound.xxx` 경로를 같은 화면에서 비교합니다.")
+                Text("이 예제는 `@ObservableState`와 flat access가 native Observation에 연결됐을 때, 실제로 재평가 범위가 어떻게 달라지는지 보는 용도입니다.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                Text("지금 단계에서는 field access / mutation 기록까지 확인할 수 있습니다. invalidation 범위 축소는 다음 단계에서 연결합니다.")
+                Text("5번 예제가 기존 `@Published state` 모델이라면, 여기서는 `@State + compound.count` 경로로 field-level invalidation을 확인합니다.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
-//                WholeStateCard(state: compound.state)
-
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("1. Legacy State Path")
+                    Text("1. Split Child Views")
                         .font(.headline)
 
-                    Text("기존 방식입니다. `compound.state.xxx`로 읽습니다.")
+                    Text("각 child view가 자기 field만 직접 읽습니다. count만 바뀌면 count row만 다시 도는지 보면 됩니다.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 
-                    SliceTextRow(
-                        title: "count",
-                        value: "\(compound.state.count)",
-                        tint: .blue
-                    )
-
-                    SliceTextRow(
-                        title: "message",
-                        value: compound.state.message,
-                        tint: .green
-                    )
-
-                    SliceTextRow(
-                        title: "isHighlighted",
-                        value: compound.state.isHighlighted ? "true" : "false",
-                        tint: .orange
-                    )
+                    CountAccessRow(compound: compound)
+                    MessageAccessRow(compound: compound)
+                    HighlightAccessRow(compound: compound)
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("2. Flat Access Path")
+                    Text("2. Inline Parent Body")
                         .font(.headline)
 
-                    Text("새 방식입니다. `compound.count`, `compound.message`, `compound.isHighlighted`로 읽습니다.")
+                    Text("부모 body가 field를 전부 읽고 직접 그립니다. 하나만 바뀌어도 이 구역은 같이 다시 계산되기 쉽습니다.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 
-                    SliceTextRow(
+                    inlineRow(
                         title: "count",
                         value: "\(compound.count)",
                         tint: .blue
                     )
 
-                    SliceTextRow(
+                    inlineRow(
                         title: "message",
                         value: compound.message,
                         tint: .green
                     )
 
-                    SliceTextRow(
+                    inlineRow(
                         title: "isHighlighted",
                         value: compound.isHighlighted ? "true" : "false",
                         tint: .orange
@@ -87,7 +71,7 @@ struct SwiftUIObservableStateProbeView: View {
                     Text("3. ObservableState Trace")
                         .font(.headline)
 
-                    Text("현재 단계에서 registrar가 어떤 field access / mutation을 기록하는지 보여줍니다.")
+                    Text("현재 render 동안 어떤 field access / mutation이 기록되는지 같이 봅니다.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
 
@@ -130,6 +114,21 @@ struct SwiftUIObservableStateProbeView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    @ViewBuilder
+    private func inlineRow(title: String, value: String, tint: Color) -> some View {
+        let backgroundColor = Self.renderColor(tint: tint)
+
+        Text("\(title): \(value)")
+            .font(.body.monospaced())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(backgroundColor)
+            )
+    }
+
     private var accessNames: [String] {
         compound.state._$observationRegistrar._$accessedKeyPaths.compactMap { keyPath in
             Self.name(for: keyPath)
@@ -155,41 +154,58 @@ struct SwiftUIObservableStateProbeView: View {
         }
         return nil
     }
-}
 
-private struct WholeStateCard: View {
-    let state: SwiftUIObservableStateProbeCompound.State
-
-    var body: some View {
-        let _ = Self._printChanges()
-
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("Whole State Snapshot")
-                .font(.headline)
-
-            Text("count: \(state.count)")
-            Text("message: \(state.message)")
-            Text("isHighlighted: \(state.isHighlighted ? "true" : "false")")
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(state.isHighlighted ? Color.yellow.opacity(0.25) : Color.secondary.opacity(0.08))
-        )
+    private static func renderColor(tint: Color) -> Color {
+        tint.opacity(Double.random(in: 0.18...0.4))
     }
 }
 
-private struct SliceTextRow: View {
-    let title: String
-    let value: String
-    let tint: Color
+private struct CountAccessRow: View {
+    let compound: SwiftUIObservableStateProbeCompound
 
     var body: some View {
         let _ = Self._printChanges()
-        let backgroundColor = Self.renderColor(tint: tint)
+        let backgroundColor = Self.renderColor(tint: .blue)
 
-        return Text("\(title): \(value)")
+        return Text("count: \(compound.count)")
+            .font(.body.monospaced())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(backgroundColor)
+            )
+    }
+}
+
+private struct MessageAccessRow: View {
+    let compound: SwiftUIObservableStateProbeCompound
+
+    var body: some View {
+        let _ = Self._printChanges()
+        let backgroundColor = Self.renderColor(tint: .green)
+
+        return Text("message: \(compound.message)")
+            .font(.body.monospaced())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(backgroundColor)
+            )
+    }
+}
+
+private struct HighlightAccessRow: View {
+    let compound: SwiftUIObservableStateProbeCompound
+
+    var body: some View {
+        let _ = Self._printChanges()
+        let backgroundColor = Self.renderColor(tint: .orange)
+
+        return Text("isHighlighted: \(compound.isHighlighted ? "true" : "false")")
             .font(.body.monospaced())
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 14)
@@ -223,7 +239,19 @@ private struct TraceCard: View {
     }
 }
 
-private extension SliceTextRow {
+private extension CountAccessRow {
+    static func renderColor(tint: Color) -> Color {
+        tint.opacity(Double.random(in: 0.18...0.4))
+    }
+}
+
+private extension MessageAccessRow {
+    static func renderColor(tint: Color) -> Color {
+        tint.opacity(Double.random(in: 0.18...0.4))
+    }
+}
+
+private extension HighlightAccessRow {
     static func renderColor(tint: Color) -> Color {
         tint.opacity(Double.random(in: 0.18...0.4))
     }

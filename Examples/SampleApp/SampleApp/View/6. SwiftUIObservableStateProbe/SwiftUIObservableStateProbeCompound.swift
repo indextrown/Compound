@@ -7,6 +7,7 @@
 
 import Combine
 import Compound
+import Observation
 
 @Compound
 final class SwiftUIObservableStateProbeCompound {

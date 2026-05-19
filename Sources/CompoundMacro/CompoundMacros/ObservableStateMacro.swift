@@ -188,16 +188,20 @@ extension ObservableStateMacro: ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        let extensionDecl: DeclSyntax = """
+        let observableStateExtension: DeclSyntax = """
         extension \(type): ObservableState {
         }
         """
 
-        guard let extensionDecl = extensionDecl.as(ExtensionDeclSyntax.self) else {
-            return []
+        let nativeObservationExtension: DeclSyntax = """
+        @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+        extension \(type): Observation.Observable {
         }
+        """
 
-        return [extensionDecl]
+        return [observableStateExtension, nativeObservationExtension].compactMap {
+            $0.as(ExtensionDeclSyntax.self)
+        }
     }
 }
 

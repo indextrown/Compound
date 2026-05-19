@@ -1,5 +1,8 @@
 import Combine
 import Foundation
+#if canImport(Observation)
+import Observation
+#endif
 import SwiftUI
 import Testing
 @testable import Compound
@@ -102,6 +105,12 @@ private final class CountingCompound: CompoundType {
     }
 }
 
+@ObservableState
+private struct ObservableStateProbeState: Equatable {
+    var count: Int = 0
+    var title: String = ""
+}
+
 @Compound
 private final class FlatAccessCompound {
     enum Action: Sendable {
@@ -143,6 +152,93 @@ private final class FlatAccessCompound {
         switch reaction {
         case .setCount(let count):
             newState.count = count
+        case .setTitle(let title):
+            newState.title = title
+        }
+
+        return newState
+    }
+}
+
+@Compound
+private final class CollidingFlatAccessCompound {
+    enum Action: Sendable {
+        case noop
+    }
+
+    enum Reaction: Sendable {
+        case noop
+    }
+
+    @ObservableState
+    struct State: Equatable {
+        var count: Int = 0
+        var title: String = "State Title"
+    }
+
+    @MainActor
+    @Published var state = State()
+
+    // 본체에 같은 이름의 멤버가 있으면 macro generated flat access보다
+    // 사용자가 직접 선언한 멤버를 우선합니다.
+    @MainActor
+    var count: Int { 999 }
+
+    @MainActor
+    init() {}
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        AsyncStream { continuation in
+            continuation.finish()
+        }
+    }
+
+    @MainActor
+    func reduce(state: State, reaction: Reaction) -> State {
+        state
+    }
+}
+
+@Compound
+private final class ObservationProbeCompound {
+    enum Action: Sendable {
+        case incrementCount
+        case setTitle(String)
+    }
+
+    enum Reaction: Sendable {
+        case incrementCount
+        case setTitle(String)
+    }
+
+    @ObservableState
+    struct State: Equatable {
+        var count: Int = 0
+        var title: String = ""
+    }
+
+    @MainActor
+    @Published var state = State()
+
+    @MainActor
+    init() {}
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        switch action {
+        case .incrementCount:
+            .just(.incrementCount)
+        case .setTitle(let title):
+            .just(.setTitle(title))
+        }
+    }
+
+    @MainActor
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+
+        switch reaction {
+        case .incrementCount:
+            newState.count += 1
         case .setTitle(let title):
             newState.title = title
         }
@@ -285,6 +381,96 @@ struct CompoundTests {
         #expect(mutations.contains(\FlatAccessCompound.State.count))
         #expect(mutations.contains(\FlatAccessCompound.State.isLoading))
     }
+
+    @Test("$compound.isLoading 경로는 SwiftUI binding으로 읽고 쓸 수 있다")
+    @MainActor
+    func flatAccessBindingWorksWithObservedObjectProjection() {
+        let compound = FlatAccessCompound()
+        let wrapper = ObservedObject(wrappedValue: compound)
+        let binding = wrapper.projectedValue.isLoading
+
+        #expect(binding.wrappedValue == false)
+
+        binding.wrappedValue = true
+
+        #expect(compound.isLoading == true)
+        #expect(compound.state.isLoading == true)
+    }
+
+    @Test("compound 본체에 같은 이름의 멤버가 있으면 macro generated flat access를 덮어쓰지 않는다")
+    @MainActor
+    func flatAccessRespectsExistingCompoundMembers() {
+        let compound = CollidingFlatAccessCompound()
+
+        #expect(compound.count == 999)
+        #expect(compound.state.count == 0)
+        #expect(compound.title == "State Title")
+    }
+
+#if canImport(Observation)
+    @Test("native Observation은 ObservableState의 matching property mutation만 invalidation한다")
+    @MainActor
+    func nativeObservationTracksObservableStatePerProperty() async throws {
+        guard #available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *) else { return }
+
+        var state = ObservableStateProbeState()
+        final class Flag: @unchecked Sendable { var value = false }
+        let titleInvalidated = Flag()
+
+        withObservationTracking {
+            _ = state.title
+        } onChange: {
+            titleInvalidated.value = true
+        }
+
+        state.count = 1
+
+        try await Task.sleep(nanoseconds: 20_000_000)
+        #expect(titleInvalidated.value == false)
+    }
+
+    @Test("compound.count reader는 count mutation에만 invalidation된다")
+    @MainActor
+    func nativeObservationTracksFlatAccessPerProperty() async throws {
+        guard #available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *) else { return }
+
+        let compound = ObservationProbeCompound()
+        final class Flag: @unchecked Sendable { var value = false }
+        let titleInvalidated = Flag()
+
+        withObservationTracking {
+            _ = compound.title
+        } onChange: {
+            titleInvalidated.value = true
+        }
+
+        compound.send(.incrementCount)
+        try await Task.sleep(nanoseconds: 20_000_000)
+
+        #expect(titleInvalidated.value == false)
+    }
+
+    @Test("compound.count reader는 count mutation이 오면 invalidation된다")
+    @MainActor
+    func nativeObservationInvalidatesMatchingFlatAccessReader() async throws {
+        guard #available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *) else { return }
+
+        let compound = ObservationProbeCompound()
+        final class Flag: @unchecked Sendable { var value = false }
+        let countInvalidated = Flag()
+
+        withObservationTracking {
+            _ = compound.count
+        } onChange: {
+            countInvalidated.value = true
+        }
+
+        compound.send(.incrementCount)
+        try await Task.sleep(nanoseconds: 20_000_000)
+
+        #expect(countInvalidated.value == true)
+    }
+#endif
 
 }
 

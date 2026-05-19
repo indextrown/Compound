@@ -1,3 +1,16 @@
+#if canImport(Observation)
+import Observation
+#endif
+
+#if canImport(Observation)
+@attached(member, names: named(_$observationRegistrar), named(shouldNotifyObservers))
+@attached(memberAttribute)
+@attached(extension, conformances: ObservableState, Observable)
+public macro ObservableState() = #externalMacro(
+    module: "CompoundMacros",
+    type: "ObservableStateMacro"
+)
+#else
 @attached(member, names: named(_$observationRegistrar), named(shouldNotifyObservers))
 @attached(memberAttribute)
 @attached(extension, conformances: ObservableState)
@@ -5,6 +18,7 @@ public macro ObservableState() = #externalMacro(
     module: "CompoundMacros",
     type: "ObservableStateMacro"
 )
+#endif
 
 @attached(accessor, names: named(init), named(get), named(set), named(_modify))
 @attached(peer, names: prefixed(_))

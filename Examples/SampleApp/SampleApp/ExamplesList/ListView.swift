@@ -111,6 +111,23 @@ struct ListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+
+#if canImport(Observation)
+                if #available(iOS 17.0, *) {
+                    NavigationLink {
+                        SwiftUIObservableMacroProbeView()
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Vanilla @Observable Probe")
+                                .font(.headline)
+                            Text("Swift가 제공하는 `@Observable`만으로 같은 field-level invalidation을 비교합니다.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+#endif
             }
             .navigationTitle("Compound Examples")
         }
