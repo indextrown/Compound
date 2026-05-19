@@ -9,7 +9,7 @@ import SwiftUI
 import Compound
 
 struct SwiftUICounterView: View {
-    @StateObject private var compound = SwiftUICounterCompound()
+    @State private var compound = SwiftUICounterCompound()
 
     var body: some View {
         VStack(spacing: 20) {

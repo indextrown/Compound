@@ -5,10 +5,10 @@
 //  Created by 김동현 on 5/19/26.
 //
 
-import Combine
 import Compound
 
-final class SwiftUIStateChangeProbeCompound: CompoundType {
+@Compound
+final class SwiftUIStateChangeProbeCompound {
     enum Action {
         case increaseCountButtonTapped
         case changeMessageButtonTapped
@@ -28,14 +28,7 @@ final class SwiftUIStateChangeProbeCompound: CompoundType {
         var isHighlighted = false
     }
 
-    @MainActor
-    let _compoundRuntime = CompoundRuntimeStorage()
-
-    @MainActor
-    @Published var state = State()
-
-    @MainActor
-    init() {}
+    var state = State()
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -58,7 +51,6 @@ final class SwiftUIStateChangeProbeCompound: CompoundType {
         }
     }
 
-    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 

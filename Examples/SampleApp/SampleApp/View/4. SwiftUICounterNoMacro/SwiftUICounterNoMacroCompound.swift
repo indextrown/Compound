@@ -5,9 +5,10 @@
 //  Created by 김동현 on 5/18/26.
 //
 
-import Combine
 import Compound
+import Observation
 
+@Observable
 final class SwiftUICounterNoMacroCompound: CompoundType {
     enum Action {
         case increaseButtonTapped
@@ -25,11 +26,11 @@ final class SwiftUICounterNoMacroCompound: CompoundType {
         var count = 0
     }
 
+    @ObservationIgnored
     @MainActor
     let _compoundRuntime = CompoundRuntimeStorage()
 
-    @MainActor
-    @Published var state = State()
+    var state = State()
 
     @MainActor
     init() {}

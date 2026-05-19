@@ -1,7 +1,6 @@
-import Combine
 import Foundation
 import Testing
-@testable import Compound
+@testable import CompoundCore
 
 private final class SerialActionCompound: CompoundType {
     enum Action: Sendable {
@@ -23,7 +22,7 @@ private final class SerialActionCompound: CompoundType {
     let _compoundRuntime = CompoundRuntimeStorage()
 
     @MainActor
-    @Published var state = State()
+    var state = State()
 
     @MainActor
     init() {}
@@ -79,7 +78,14 @@ private final class CountingCompound: CompoundType {
     let _compoundRuntime = CompoundRuntimeStorage()
 
     @MainActor
-    @Published var state = State()
+    var state = State() {
+        didSet {
+            stateAssignmentCount += 1
+        }
+    }
+
+    @MainActor
+    private(set) var stateAssignmentCount = 0
 
     @MainActor
     init() {}
@@ -156,14 +162,12 @@ struct CompoundTests {
     @MainActor
     func sendSkipsReassigningSameState() async throws {
         let compound = CountingCompound()
-        var states: [CountingCompound.State] = []
-        let cancellable = compound.$state.sink { states.append($0) }
 
         compound.send(.sameValue)
         try await Task.sleep(nanoseconds: 50_000_000)
-        cancellable.cancel()
 
-        #expect(states == [.init(count: 0)])
+        #expect(compound.state == .init(count: 0))
+        #expect(compound.stateAssignmentCount == 0)
     }
 
 }

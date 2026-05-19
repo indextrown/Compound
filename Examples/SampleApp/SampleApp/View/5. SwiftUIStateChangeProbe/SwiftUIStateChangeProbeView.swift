@@ -9,7 +9,7 @@ import SwiftUI
 import Compound
 
 struct SwiftUIStateChangeProbeView: View {
-    @StateObject private var compound = SwiftUIStateChangeProbeCompound()
+    @State private var compound = SwiftUIStateChangeProbeCompound()
 
     var body: some View {
         let _ = Self._printChanges()

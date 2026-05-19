@@ -6,8 +6,10 @@
 //
 
 import Combine
-import Compound
 import UIKit
+
+#if canImport(CompoundKit)
+import CompoundKit
 
 final class UIKitConcatViewController: UIViewController {
     private let compound = UIKitConcatCompound()
@@ -109,3 +111,4 @@ final class UIKitConcatViewController: UIViewController {
         compound.send(.refreshButtonTapped)
     }
 }
+#endif

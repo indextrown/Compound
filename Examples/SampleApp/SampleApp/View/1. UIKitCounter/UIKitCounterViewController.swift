@@ -6,8 +6,10 @@
 //
 
 import Combine
-import Compound
 import UIKit
+
+#if canImport(CompoundKit)
+import CompoundKit
 
 final class UIKitCounterViewController: UIViewController {
     private let compound = UIKitCounterCompound()
@@ -108,3 +110,4 @@ final class UIKitCounterViewController: UIViewController {
         compound.send(.resetButtonTapped)
     }
 }
+#endif

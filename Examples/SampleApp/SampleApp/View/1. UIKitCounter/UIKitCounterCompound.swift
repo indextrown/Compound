@@ -6,9 +6,11 @@
 //
 
 import Combine
-import Compound
 
-@Compound
+#if canImport(CompoundKit)
+import CompoundKit
+
+@CompoundKit
 final class UIKitCounterCompound {
     enum Action {
         case increaseButtonTapped
@@ -54,3 +56,4 @@ final class UIKitCounterCompound {
         return newState
     }
 }
+#endif
