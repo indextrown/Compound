@@ -85,6 +85,19 @@ struct ListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+
+                NavigationLink {
+                    SwiftUIStateChangeProbeView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SwiftUI State Change Probe")
+                            .font(.headline)
+                        Text("state 일부 속성만 바꿀 때 어떤 SwiftUI 뷰가 다시 계산되는지 콘솔 로그로 확인합니다.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
             }
             .navigationTitle("Compound Examples")
         }
