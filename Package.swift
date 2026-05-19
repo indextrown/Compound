@@ -69,6 +69,10 @@ let package = Package(
             dependencies: ["CompoundCore"]
         ),
         .testTarget(
+            name: "CompoundKitTests",
+            dependencies: ["CompoundKit"]
+        ),
+        .testTarget(
             name: "CompoundMacrosTests",
             dependencies: [
                 "CompoundMacros",

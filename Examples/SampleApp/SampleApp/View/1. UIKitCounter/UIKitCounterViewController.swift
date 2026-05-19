@@ -85,9 +85,7 @@ final class UIKitCounterViewController: UIViewController {
     }
 
     private func bindState() {
-        compound.$state
-            .map(\.count)
-            .removeDuplicates()
+        compound.publisher(\.count)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] count in
                 self?.countLabel.text = "\(count)"

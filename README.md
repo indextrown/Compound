@@ -174,11 +174,48 @@ SwiftUI에서는 `@State`로 Compound를 소유하고, 화면 이벤트에서 `s
 ## UIKit에서 사용하기
 
 UIKit은 `CompoundKit` product를 통해 분리된 경로를 사용합니다.
-기본 사용 방식은 `@Published state`와 Combine slice subscription입니다.
+현재 구현 기준의 기본 사용 방식은 `@Published state`와 `publisher(\.field)` 기반 slice subscription입니다.
 
 ```swift
 import CompoundKit
+import Combine
 import UIKit
+
+@CompoundKit
+final class CounterCompound {
+    enum Action {
+        case increaseButtonTapped
+    }
+
+    enum Reaction {
+        case setCount(Int)
+    }
+
+    struct State: Equatable {
+        var count = 0
+    }
+
+    @Published var state = State()
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        switch action {
+        case .increaseButtonTapped:
+            return .just(.setCount(currentState.count + 1))
+        }
+    }
+
+    @MainActor
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+
+        switch reaction {
+        case .setCount(let count):
+            newState.count = count
+        }
+
+        return newState
+    }
+}
 
 final class CounterViewController: UIViewController {
     private let compound = CounterCompound()
@@ -196,7 +233,8 @@ final class CounterViewController: UIViewController {
 }
 ```
 
-더 직접적인 Combine 조합이 필요하면 기존처럼 `$state.map(...).removeDuplicates()` 경로를 사용할 수 있습니다.
+즉 현재 `@CompoundKit`은 UIKit/Combine 경로에 필요한 런타임 멤버, `CompoundType` 채택, `publisher(\.field)` helper를 함께 정리해주는 역할을 맡습니다.
+직접 Combine 체인을 조합하는 경로도 계속 유효합니다.
 
 ## Reaction Stream 조합
 

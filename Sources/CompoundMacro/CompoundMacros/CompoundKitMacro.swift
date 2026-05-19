@@ -11,6 +11,16 @@ public struct CompoundKitMacro: MemberMacro, ExtensionMacro {
     ) throws -> [DeclSyntax] {
         [
             """
+            func publisher<Value: Equatable>(
+                _ keyPath: KeyPath<State, Value>
+            ) -> AnyPublisher<Value, Never> {
+                $state
+                    .map(keyPath)
+                    .removeDuplicates()
+                    .eraseToAnyPublisher()
+            }
+            """,
+            """
             @MainActor
             let _compoundRuntime = CompoundRuntimeStorage()
             """
