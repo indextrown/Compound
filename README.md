@@ -69,6 +69,14 @@ UIKit/Combine 경로를 사용할 target에는 `CompoundKit` product를 연결�
 )
 ```
 
+## 지원 플랫폼 및 기술 스택
+
+| 컴포넌트 | Swift / Xcode | 지원 플랫폼 | 주요 의존성 |
+| --- | --- | --- | --- |
+| `Compound` | Swift 6.1 / Xcode 16.4+ | iOS 17+, macOS 14+ | `CompoundCore`, Observation |
+| `CompoundKit` | Swift 6.1 / Xcode 16.4+ | iOS 17+, macOS 14+ | Combine |
+| `CompoundMacros` | Swift 6.1 / Xcode 16.4+ | macOS host only | `swift-syntax` 600 |
+
 패키지는 내부적으로 다음 구조를 가집니다.
 
 - `CompoundCore`: 상태 전이 코어와 런타임
@@ -375,12 +383,20 @@ extension CounterCompound: CompoundType, Observation.Observable {}
 
 ```mermaid
 flowchart LR
-    View["View<br/>SwiftUI / UIKit"]
-    Send["send(Action)<br/>순차 처리 queue"]
-    React["react(Action)<br/>side effect 경계"]
-    Stream["AsyncStream&lt;Reaction&gt;<br/>just / concat / merge"]
-    Reduce["reduce(State, Reaction)<br/>상태 전이 경계"]
-    State["state<br/>Observation + MainActor"]
+    subgraph UI[View / UI]
+        View["View<br/>SwiftUI / UIKit"]
+    end
+
+    subgraph Runtime[Action Runtime]
+        Send["send(Action)<br/>순차 처리 queue"]
+        React["react(Action)<br/>side effect 경계"]
+        Stream["AsyncStream&lt;Reaction&gt;<br/>just / concat / merge"]
+    end
+
+    subgraph Reducer[State Transition]
+        Reduce["reduce(State, Reaction)<br/>상태 전이 경계"]
+        State["state<br/>Observation + @MainActor"]
+    end
 
     View --> Send
     Send --> React
@@ -396,4 +412,7 @@ flowchart LR
     Cancel -. 취소 .-> Send
     Lifetime -. 자동 취소 .-> Send
     Stream -. termination .-> Cleanup
+
+    classDef lifecycle fill:#f8f9fa,stroke:#6c757d,stroke-dasharray: 3 3;
+    class Cancel,Lifetime,Cleanup lifecycle;
 ```
