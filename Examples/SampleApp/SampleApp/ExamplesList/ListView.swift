@@ -24,6 +24,8 @@ struct ListView: View {
                     .padding(.vertical, 4)
                 }
 
+                // UIKit 예제는 `@CompoundKit` 방향이 정리되면 다시 노출합니다.
+        
                 NavigationLink {
                     UIViewControllerRepresentation { _ in
                         UIKitCounterViewController()
@@ -41,6 +43,7 @@ struct ListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+           
 
                 NavigationLink {
                     SwiftUIConcatView()
@@ -55,6 +58,8 @@ struct ListView: View {
                     .padding(.vertical, 4)
                 }
 
+                // UIKit 예제는 `@CompoundKit` 방향이 정리되면 다시 노출합니다.
+                /*
                 NavigationLink {
                     UIViewControllerRepresentation { _ in
                         UIKitConcatViewController()
@@ -72,6 +77,7 @@ struct ListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+                */
 
                 NavigationLink {
                     SwiftUICounterNoMacroView()

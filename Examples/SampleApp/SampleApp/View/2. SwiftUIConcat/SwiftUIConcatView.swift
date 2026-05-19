@@ -9,7 +9,7 @@ import Compound
 import SwiftUI
 
 struct SwiftUIConcatView: View {
-    @StateObject private var compound = SwiftUIConcatCompound()
+    @State private var compound = SwiftUIConcatCompound()
 
     var body: some View {
         VStack(spacing: 20) {

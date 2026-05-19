@@ -1,7 +1,6 @@
-import Combine
 import Foundation
 import Testing
-@testable import Compound
+@testable import CompoundCore
 
 private actor TerminationProbe {
     private var isStarted = false
@@ -43,7 +42,7 @@ private final class CancellableActionCompound: CompoundType {
     let _compoundRuntime = CompoundRuntimeStorage()
 
     @MainActor
-    @Published var state = State()
+    var state = State()
 
     private let terminationProbe: TerminationProbe?
     private var controlledContinuation: AsyncStream<Reaction>.Continuation?

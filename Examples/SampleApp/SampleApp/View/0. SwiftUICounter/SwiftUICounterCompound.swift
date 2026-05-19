@@ -6,7 +6,6 @@
 //
 
 import Compound
-import Combine
 
 @Compound
 final class SwiftUICounterCompound {
@@ -26,7 +25,7 @@ final class SwiftUICounterCompound {
         var count = 0
     }
 
-    @Published var state = State()
+    var state = State()
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {

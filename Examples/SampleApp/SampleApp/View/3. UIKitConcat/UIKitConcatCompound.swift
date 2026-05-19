@@ -6,10 +6,12 @@
 //
 
 import Combine
-import Compound
 import Foundation
 
-@Compound
+#if canImport(CompoundKit)
+import CompoundKit
+
+@CompoundKit
 final class UIKitConcatCompound {
     enum Action {
         case refreshButtonTapped
@@ -71,3 +73,4 @@ final class UIKitConcatCompound {
         }
     }
 }
+#endif

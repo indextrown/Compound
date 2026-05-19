@@ -7,14 +7,17 @@ import PackageDescription
 let package = Package(
     name: "Compound",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13)
+        .iOS(.v17),
+        .macOS(.v14)
     ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "Compound",
             targets: ["Compound"]
+        ),
+        .library(
+            name: "CompoundKit",
+            targets: ["CompoundKit"]
         ),
         .executable(
             name: "CompoundMacroClient",
@@ -25,13 +28,25 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "600.0.0")
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        .target(
+            name: "CompoundCore",
+            path: "Sources/CompoundCore"
+        ),
         .target(
             name: "Compound",
             dependencies: [
+                "CompoundCore",
                 "CompoundMacros"
-            ]
+            ],
+            path: "Sources/Compound"
+        ),
+        .target(
+            name: "CompoundKit",
+            dependencies: [
+                "CompoundCore",
+                "CompoundMacros"
+            ],
+            path: "Sources/CompoundKit"
         ),
         .macro(
             name: "CompoundMacros",
@@ -46,12 +61,16 @@ let package = Package(
         ),
         .executableTarget(
             name: "CompoundMacroClient",
-            dependencies: ["Compound"],
+            dependencies: ["Compound", "CompoundKit"],
             path: "Sources/CompoundMacro/CompoundMacroClient"
         ),
         .testTarget(
             name: "CompoundTests",
-            dependencies: ["Compound"]
+            dependencies: ["CompoundCore"]
+        ),
+        .testTarget(
+            name: "CompoundKitTests",
+            dependencies: ["CompoundKit"]
         ),
         .testTarget(
             name: "CompoundMacrosTests",

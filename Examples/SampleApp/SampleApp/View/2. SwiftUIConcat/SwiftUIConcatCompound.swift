@@ -5,7 +5,6 @@
 //  Created by 김동현 on 5/16/26.
 //
 
-import Combine
 import Compound
 import Foundation
 
@@ -27,7 +26,7 @@ final class SwiftUIConcatCompound {
         var statusMessage = "Refresh를 눌러 concat sequence를 시작해보세요."
     }
 
-    @Published var state = State()
+    var state = State()
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -62,7 +61,8 @@ final class SwiftUIConcatCompound {
                 self.currentState.refreshCount + 1
             }
 
-            try await Task.sleep(for: .milliseconds(800))
+            try? await Task.sleep(for: .milliseconds(800))
+            guard !Task.isCancelled else { return }
 
             await send(.setRefreshCount(nextCount))
             await send(.setStatusMessage("Refresh #\(nextCount) completed"))

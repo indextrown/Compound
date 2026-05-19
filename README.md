@@ -47,7 +47,7 @@ dependencies: [
 ]
 ```
 
-사용할 target에는 `Compound` product를 연결합니다.
+사용할 target에는 필요한 product를 연결합니다.
 
 ```swift
 .target(
@@ -58,12 +58,28 @@ dependencies: [
 )
 ```
 
+UIKit/Combine 경로를 사용할 target에는 `CompoundKit` product를 연결합니다.
+
+```swift
+.target(
+    name: "YourUIKitTarget",
+    dependencies: [
+        .product(name: "CompoundKit", package: "Compound")
+    ]
+)
+```
+
+패키지는 내부적으로 다음 구조를 가집니다.
+
+- `CompoundCore`: 상태 전이 코어와 런타임
+- `Compound`: SwiftUI / Observation 경로
+- `CompoundKit`: UIKit / Combine 경로
+
 Xcode에서는 `File > Add Package Dependencies...`에서 위 URL을 입력하고 `Dependency Rule`을 `Up to Next Major Version` / `1.0.0`으로 설정하면 됩니다.
 
 ## 기본 사용법
 
 ```swift
-import Combine
 import Compound
 import Foundation
 
@@ -85,7 +101,7 @@ final class CounterCompound {
         var count = 0
     }
 
-    @Published var state = State()
+    var state = State()
 
     func react(action: Action) -> AsyncStream<Reaction> {
         switch action {
@@ -117,7 +133,7 @@ final class CounterCompound {
 ```
 
 동기적인 상태 변경은 `.just(...)`로 reaction 하나를 바로 방출하면 됩니다.
-`@Compound` 매크로는 `_compoundRuntime` 저장소와 `CompoundType` 채택을 자동으로 붙여줍니다.
+`@Compound` 매크로는 `_compoundRuntime` 저장소와 `CompoundType` 채택을 자동으로 붙여주고, SwiftUI에서 사용할 수 있도록 `state`를 Observation 경로에 연결합니다.
 현재 state를 기준으로 한 계산은 가능하면 `reduce(state:reaction:)`에서 처리합니다.
 `react(action:)`에서 현재 상태를 참고해야 하는 경우에는 명시적인 메인 액터 hop을 고려하는 편이 좋습니다.
 
@@ -128,7 +144,7 @@ import Compound
 import SwiftUI
 
 struct CounterView: View {
-    @StateObject private var compound = CounterCompound()
+    @State private var compound = CounterCompound()
 
     var body: some View {
         VStack(spacing: 16) {
@@ -151,40 +167,74 @@ struct CounterView: View {
 }
 ```
 
-SwiftUI에서는 `@StateObject`나 `@ObservedObject`로 Compound를 소유하고, 화면 이벤트에서 `send(_:)`를 호출합니다.
-현재 기본 관찰 모델은 `ObservableObject + @Published var state`입니다.
+SwiftUI에서는 `@State`로 Compound를 소유하고, 화면 이벤트에서 `send(_:)`를 호출합니다.
+현재 `@Compound`의 목표는 state 단위 Observation을 제공하는 SwiftUI 전환용 매크로입니다.
+즉 지금 단계의 기본 읽기 경로는 `compound.state.xxx`이며, `ObservableObject + @Published state` 의존성을 걷어내는 것이 우선 목표입니다.
 
 ## UIKit에서 사용하기
 
+UIKit은 `CompoundKit` product를 통해 분리된 경로를 사용합니다.
+현재 구현 기준의 기본 사용 방식은 `@Published state`와 `publisher(\.field)` 기반 slice subscription입니다.
+
 ```swift
+import CompoundKit
 import Combine
-import Compound
 import UIKit
+
+@CompoundKit
+final class CounterCompound {
+    enum Action {
+        case increaseButtonTapped
+    }
+
+    enum Reaction {
+        case setCount(Int)
+    }
+
+    struct State: Equatable {
+        var count = 0
+    }
+
+    @Published var state = State()
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        switch action {
+        case .increaseButtonTapped:
+            return .just(.setCount(currentState.count + 1))
+        }
+    }
+
+    @MainActor
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+
+        switch reaction {
+        case .setCount(let count):
+            newState.count = count
+        }
+
+        return newState
+    }
+}
 
 final class CounterViewController: UIViewController {
     private let compound = CounterCompound()
-    private var cancellables = Set<AnyCancellable>()
-    private let label = UILabel()
+    private var cancellables: Set<AnyCancellable> = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        compound.$state
-            .map(\.count)
-            .removeDuplicates()
+        compound.publisher(\.count)
             .sink { [weak self] count in
-                self?.label.text = "\(count)"
+                self?.countLabel.text = "\(count)"
             }
             .store(in: &cancellables)
-    }
-
-    @objc private func increaseButtonTapped() {
-        compound.send(.increaseButtonTapped)
     }
 }
 ```
 
-UIKit에서는 `@Published state`를 Combine으로 구독해 필요한 값만 UI에 반영합니다.
+즉 현재 `@CompoundKit`은 UIKit/Combine 경로에 필요한 런타임 멤버, `CompoundType` 채택, `publisher(\.field)` helper를 함께 정리해주는 역할을 맡습니다.
+직접 Combine 체인을 조합하는 경로도 계속 유효합니다.
 
 ## Reaction Stream 조합
 
@@ -284,7 +334,7 @@ final class CounterCompound {
     enum Reaction { case increase }
     struct State: Equatable { var count = 0 }
 
-    @Published var state = State()
+    var state = State()
 
     func react(action: Action) -> AsyncStream<Reaction> {
         .just(.increase)
@@ -302,18 +352,24 @@ final class CounterCompound {
 
 ```swift
 extension CounterCompound {
+    private let _$observationRegistrar = ObservationRegistrar()
+
+    func access(...) { ... }
+    func withMutation(...) { ... }
+
     @MainActor
     let _compoundRuntime = CompoundRuntimeStorage()
 }
 
-extension CounterCompound: CompoundType {}
+extension CounterCompound: CompoundType, Observation.Observable {}
 ```
 
-즉 사용자는 `Action`, `Reaction`, `State`, `@Published var state`, `react`, `reduce`만 선언하면 됩니다.
+즉 사용자는 `Action`, `Reaction`, `State`, `var state`, `react`, `reduce`만 선언하면 됩니다.
+현재 `@Compound`는 `@Observable`을 타입 상단에 다시 붙이는 방식이 아니라, SwiftUI 전환에 필요한 Observation 코드를 직접 합성하는 방식으로 동작합니다.
 
 ## 동작 파이프라인
 
-![Compound pipeline](./Pipeline.png)
+![Compound pipeline](./Pipeline/Architecture.png)
 
 아래 Mermaid 다이어그램은 같은 흐름을 텍스트 기반으로 표현한 버전입니다.
 
@@ -324,14 +380,14 @@ flowchart LR
     React["react(Action)<br/>side effect 경계"]
     Stream["AsyncStream&lt;Reaction&gt;<br/>just / concat / merge"]
     Reduce["reduce(State, Reaction)<br/>상태 전이 경계"]
-    State["@Published state<br/>MainActor"]
+    State["state<br/>Observation + MainActor"]
 
     View --> Send
     Send --> React
     React --> Stream
     Stream --> Reduce
     Reduce --> State
-    State -. publish .-> View
+    State -. observation .-> View
 
     Cancel["cancelAllActions()"]
     Lifetime["deinit"]

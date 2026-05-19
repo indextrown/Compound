@@ -1,7 +1,6 @@
-import Combine
 import Foundation
 import Testing
-@testable import Compound
+@testable import CompoundCore
 
 private final class SerialActionCompound: CompoundType {
     enum Action: Sendable {
@@ -23,7 +22,7 @@ private final class SerialActionCompound: CompoundType {
     let _compoundRuntime = CompoundRuntimeStorage()
 
     @MainActor
-    @Published var state = State()
+    var state = State()
 
     @MainActor
     init() {}
@@ -79,7 +78,14 @@ private final class CountingCompound: CompoundType {
     let _compoundRuntime = CompoundRuntimeStorage()
 
     @MainActor
-    @Published var state = State()
+    var state = State() {
+        didSet {
+            stateAssignmentCount += 1
+        }
+    }
+
+    @MainActor
+    private(set) var stateAssignmentCount = 0
 
     @MainActor
     init() {}
@@ -101,8 +107,71 @@ private final class CountingCompound: CompoundType {
     }
 }
 
+private final class CounterCompound: CompoundType {
+    enum Action: Sendable {
+        case increase
+    }
+
+    enum Reaction: Sendable {
+        case setCount(Int)
+    }
+
+    struct State: Equatable {
+        var count = 0
+    }
+
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
+    var state = State()
+
+    @MainActor
+    init() {}
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        switch action {
+        case .increase:
+            return .just(.setCount(1))
+        }
+    }
+
+    @MainActor
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+
+        switch reaction {
+        case .setCount(let count):
+            newState.count = count
+        }
+
+        return newState
+    }
+}
+
 @Suite("Compound")
 struct CompoundTests {
+    @Test("currentState는 현재 state를 그대로 노출한다")
+    @MainActor
+    func currentStateReflectsState() {
+        let compound = CounterCompound()
+
+        compound.state.count = 3
+
+        #expect(compound.currentState == .init(count: 3))
+    }
+
+    @Test("send(_:)는 react(action:)이 방출한 reaction을 reduce에 적용해 state를 갱신한다")
+    @MainActor
+    func sendAppliesReactionToState() async throws {
+        let compound = CounterCompound()
+
+        compound.send(.increase)
+        try await waitUntil { compound.state == .init(count: 1) }
+
+        #expect(compound.state == .init(count: 1))
+    }
+
     @Test("send(_:)는 이전 action의 reaction sequence가 끝난 뒤 다음 action을 처리한다")
     @MainActor
     func sendProcessesActionsSequentially() async throws {
@@ -111,7 +180,7 @@ struct CompoundTests {
         compound.send(.refresh)
         compound.send(.reset)
 
-        try await Task.sleep(nanoseconds: 120_000_000)
+        try await waitUntil { compound.state.items == [] && compound.state.isLoading == false }
 
         #expect(compound.state.items == [])
         #expect(compound.state.isLoading == false)
@@ -156,14 +225,26 @@ struct CompoundTests {
     @MainActor
     func sendSkipsReassigningSameState() async throws {
         let compound = CountingCompound()
-        var states: [CountingCompound.State] = []
-        let cancellable = compound.$state.sink { states.append($0) }
 
         compound.send(.sameValue)
-        try await Task.sleep(nanoseconds: 50_000_000)
-        cancellable.cancel()
+        try await waitUntil { compound.state == .init(count: 0) }
 
-        #expect(states == [.init(count: 0)])
+        #expect(compound.state == .init(count: 0))
+        #expect(compound.stateAssignmentCount == 0)
     }
 
+    @MainActor
+    private func waitUntil(
+        _ condition: @escaping @MainActor () async -> Bool
+    ) async throws {
+        for _ in 0..<40 {
+            if await condition() {
+                return
+            }
+
+            try await Task.sleep(nanoseconds: 5_000_000)
+        }
+
+        #expect(await condition())
+    }
 }

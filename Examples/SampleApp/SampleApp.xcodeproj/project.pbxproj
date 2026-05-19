@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DF3700172FBC7A2400104D52 /* Compound in Frameworks */ = {isa = PBXBuildFile; productRef = DF3700162FBC7A2400104D52 /* Compound */; };
+		DF3700192FBC7A2400104D52 /* CompoundKit in Frameworks */ = {isa = PBXBuildFile; productRef = DF3700182FBC7A2400104D52 /* CompoundKit */; };
 		DF70A5D62FB7706200176238 /* Compound in Frameworks */ = {isa = PBXBuildFile; productRef = DF70A5D52FB7706200176238 /* Compound */; };
 /* End PBXBuildFile section */
 
@@ -56,7 +58,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DF3700192FBC7A2400104D52 /* CompoundKit in Frameworks */,
 				DF70A5D62FB7706200176238 /* Compound in Frameworks */,
+				DF3700172FBC7A2400104D52 /* Compound in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +122,8 @@
 			name = SampleApp;
 			packageProductDependencies = (
 				DF70A5D52FB7706200176238 /* Compound */,
+				DF3700162FBC7A2400104D52 /* Compound */,
+				DF3700182FBC7A2400104D52 /* CompoundKit */,
 			);
 			productName = SampleApp;
 			productReference = DF70A5AA2FB7704200176238 /* SampleApp.app */;
@@ -202,7 +208,7 @@
 			mainGroup = DF70A5A12FB7704200176238;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				DF70A5D42FB7706200176238 /* XCLocalSwiftPackageReference "../../../Compound" */,
+				DF3700152FBC7A2400104D52 /* XCLocalSwiftPackageReference "../../../Compound" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DF70A5AB2FB7704200176238 /* Products */;
@@ -591,13 +597,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		DF70A5D42FB7706200176238 /* XCLocalSwiftPackageReference "../../../Compound" */ = {
+		DF3700152FBC7A2400104D52 /* XCLocalSwiftPackageReference "../../../Compound" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../../../Compound;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		DF3700162FBC7A2400104D52 /* Compound */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Compound;
+		};
+		DF3700182FBC7A2400104D52 /* CompoundKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CompoundKit;
+		};
 		DF70A5D52FB7706200176238 /* Compound */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Compound;
