@@ -331,7 +331,7 @@ extension CounterCompound: CompoundType, Observation.Observable {}
 
 ## 동작 파이프라인
 
-![Compound pipeline](./Pipeline.png)
+![Compound pipeline](./Pipeline/Architecture.png)
 
 아래 Mermaid 다이어그램은 같은 흐름을 텍스트 기반으로 표현한 버전입니다.
 
