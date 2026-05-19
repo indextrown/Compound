@@ -167,7 +167,7 @@ struct CompoundTests {
         let compound = CounterCompound()
 
         compound.send(.increase)
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await waitUntil { compound.state == .init(count: 1) }
 
         #expect(compound.state == .init(count: 1))
     }
@@ -180,7 +180,7 @@ struct CompoundTests {
         compound.send(.refresh)
         compound.send(.reset)
 
-        try await Task.sleep(nanoseconds: 120_000_000)
+        try await waitUntil { compound.state.items == [] && compound.state.isLoading == false }
 
         #expect(compound.state.items == [])
         #expect(compound.state.isLoading == false)
@@ -227,10 +227,24 @@ struct CompoundTests {
         let compound = CountingCompound()
 
         compound.send(.sameValue)
-        try await Task.sleep(nanoseconds: 50_000_000)
+        try await waitUntil { compound.state == .init(count: 0) }
 
         #expect(compound.state == .init(count: 0))
         #expect(compound.stateAssignmentCount == 0)
     }
 
+    @MainActor
+    private func waitUntil(
+        _ condition: @escaping @MainActor () async -> Bool
+    ) async throws {
+        for _ in 0..<40 {
+            if await condition() {
+                return
+            }
+
+            try await Task.sleep(nanoseconds: 5_000_000)
+        }
+
+        #expect(await condition())
+    }
 }
