@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import SwiftUI
 import Testing
 @testable import Compound
 
@@ -101,6 +102,55 @@ private final class CountingCompound: CompoundType {
     }
 }
 
+@Compound
+private final class FlatAccessCompound {
+    enum Action: Sendable {
+        case increase
+    }
+
+    enum Reaction: Sendable {
+        case setCount(Int)
+        case setTitle(String)
+    }
+
+    @ObservableState
+    struct State: Equatable {
+        var count: Int = 0
+        var title: String = "Hello"
+        var isLoading: Bool = false
+    }
+
+    @MainActor
+    @Published var state = State()
+
+    @MainActor
+    init() {}
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        switch action {
+        case .increase:
+            .concat(
+                .just(.setCount(1)),
+                .just(.setTitle("Updated"))
+            )
+        }
+    }
+
+    @MainActor
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+
+        switch reaction {
+        case .setCount(let count):
+            newState.count = count
+        case .setTitle(let title):
+            newState.title = title
+        }
+
+        return newState
+    }
+}
+
 @Suite("Compound")
 struct CompoundTests {
     @Test("send(_:)는 이전 action의 reaction sequence가 끝난 뒤 다음 action을 처리한다")
@@ -166,4 +216,82 @@ struct CompoundTests {
         #expect(states == [.init(count: 0)])
     }
 
+    @Test("@Compound는 @ObservableState가 붙은 nested State의 top-level property를 flat access로 노출한다")
+    @MainActor
+    func compoundExposesFlatAccessorsFromObservableState() {
+        let compound = FlatAccessCompound()
+
+        #expect(compound.count == 0)
+        #expect(compound.title == "Hello")
+        #expect(compound.isLoading == false)
+        #expect(compound.count == compound.state.count)
+        #expect(compound.title == compound.state.title)
+        #expect(compound.isLoading == compound.state.isLoading)
+    }
+
+    @Test("flat access는 state 변경 이후에도 최신 값을 그대로 반영한다")
+    @MainActor
+    func flatAccessorsReflectUpdatedState() async throws {
+        let compound = FlatAccessCompound()
+
+        compound.send(.increase)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        #expect(compound.count == 1)
+        #expect(compound.title == "Updated")
+        #expect(compound.count == compound.state.count)
+        #expect(compound.title == compound.state.title)
+    }
+
+    @Test("flat access setter는 state의 top-level property를 갱신한다")
+    @MainActor
+    func flatAccessSetterUpdatesState() {
+        let compound = FlatAccessCompound()
+
+        compound.count = 41
+        compound.title = "Manual"
+        compound.isLoading = true
+
+        #expect(compound.state.count == 41)
+        #expect(compound.state.title == "Manual")
+        #expect(compound.state.isLoading == true)
+    }
+
+    @Test("@ObservableState는 flat access read를 state property access로 기록한다")
+    @MainActor
+    func observableStateTracksAccesses() {
+        let compound = FlatAccessCompound()
+        compound.state._$observationRegistrar._$clearAccesses()
+
+        _ = compound.count
+        _ = compound.title
+
+        let accesses = compound.state._$observationRegistrar._$accessedKeyPaths
+        #expect(accesses.count == 2)
+        #expect(accesses.contains { $0 == \FlatAccessCompound.State.count })
+        #expect(accesses.contains { $0 == \FlatAccessCompound.State.title })
+    }
+
+    @Test("@ObservableState는 flat access setter를 state property mutation으로 기록한다")
+    @MainActor
+    func observableStateTracksMutationsFromFlatAccessSetter() {
+        let compound = FlatAccessCompound()
+        compound.state._$observationRegistrar._$clearMutations()
+
+        compound.count = 7
+        compound.isLoading = true
+
+        let mutations = compound.state._$observationRegistrar._$mutatedKeyPaths
+        #expect(mutations.contains(\FlatAccessCompound.State.count))
+        #expect(mutations.contains(\FlatAccessCompound.State.isLoading))
+    }
+
+}
+
+private struct FlatAccessBindingProbeView: View {
+    @StateObject private var compound = FlatAccessCompound()
+
+    var body: some View {
+        Toggle("Loading", isOn: $compound.isLoading)
+    }
 }

@@ -98,6 +98,19 @@ struct ListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+
+                NavigationLink {
+                    SwiftUIObservableStateProbeView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SwiftUI ObservableState Probe")
+                            .font(.headline)
+                        Text("compound.state.xxx와 compound.xxx를 함께 비교하고 ObservableState access/mutation 기록을 확인합니다.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
             }
             .navigationTitle("Compound Examples")
         }

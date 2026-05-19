@@ -1,5 +1,5 @@
 //
-//  SwiftUIStateChangeProbeCompound.swift
+//  SwiftUIObservableStateProbeCompound.swift
 //  SampleApp
 //
 //  Created by 김동현 on 5/19/26.
@@ -9,7 +9,7 @@ import Combine
 import Compound
 
 @Compound
-final class SwiftUIStateChangeProbeCompound {
+final class SwiftUIObservableStateProbeCompound {
     enum Action {
         case increaseCountButtonTapped
         case changeMessageButtonTapped
@@ -23,10 +23,11 @@ final class SwiftUIStateChangeProbeCompound {
         case setHighlight(Bool)
     }
 
+    @ObservableState
     struct State: Equatable {
-        var count = 0
-        var message = "Ready"
-        var isHighlighted = false
+        var count: Int = 0
+        var message: String = "Ready"
+        var isHighlighted: Bool = false
     }
 
     @Published var state = State()
