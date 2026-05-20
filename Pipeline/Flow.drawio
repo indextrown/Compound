@@ -1,78 +1,106 @@
-<mxfile host="app.diagrams.net" modified="2026-05-20T01:20:00.000Z" agent="Mozilla/5.0" version="26.0.9" type="device">
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.9 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.9">
   <diagram id="flow" name="Flow">
-    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1000" math="0" shadow="0">
+    <mxGraphModel dx="2093" dy="1347" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1000" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-
-        <mxCell id="2" value="" style="rounded=1;arcSize=18;whiteSpace=wrap;html=0;fillColor=#000000;strokeColor=#e5e7eb;strokeWidth=3;" vertex="1" parent="1">
-          <mxGeometry x="50" y="60" width="1700" height="840" as="geometry"/>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="frame" value="" style="rounded=1;arcSize=2;whiteSpace=wrap;html=0;fillColor=#fcfcfd;strokeColor=#d7deea;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="20" y="20" width="1760" height="940" as="geometry" />
         </mxCell>
-
-        <mxCell id="3" value="Compound Flow" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=28;fontStyle=1;fontColor=#ffffff;" vertex="1" parent="1">
-          <mxGeometry x="660" y="95" width="480" height="40" as="geometry"/>
+        <mxCell id="title" value="Compound Flow" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=28;fontStyle=1;fontColor=#111827;" parent="1" vertex="1">
+          <mxGeometry x="670" y="40" width="440" height="34" as="geometry" />
         </mxCell>
-
-        <mxCell id="10" value="View" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#0284c7;strokeColor=#ffffff;strokeWidth=3;fontSize=24;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="120" y="470" width="200" height="100" as="geometry"/>
+        <mxCell id="subtitle" value="View sends Action, Compound emits Reaction sequence, reduce creates the next State" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=15;fontColor=#6b7280;" parent="1" vertex="1">
+          <mxGeometry x="450" y="80" width="880" height="24" as="geometry" />
         </mxCell>
-        <mxCell id="11" value="Action" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#0284c7;strokeColor=#ffffff;strokeWidth=3;fontSize=24;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="390" y="470" width="200" height="100" as="geometry"/>
+        <mxCell id="view" value="View" style="rounded=1;arcSize=16;whiteSpace=wrap;html=0;fillColor=#d9cce4;strokeColor=#9d7ab2;strokeWidth=5;fontSize=34;fontStyle=1;fontColor=#111827;shadow=1;" parent="1" vertex="1">
+          <mxGeometry x="90" y="350" width="320" height="170" as="geometry" />
         </mxCell>
-        <mxCell id="12" value="react(Action)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#0f766e;strokeColor=#ffffff;strokeWidth=3;fontSize=22;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="660" y="470" width="220" height="100" as="geometry"/>
+        <mxCell id="compoundShell" value="" style="rounded=1;arcSize=18;whiteSpace=wrap;html=0;fillColor=#dbe7fb;strokeColor=#6a8ec8;strokeWidth=6;shadow=1;" parent="1" vertex="1">
+          <mxGeometry x="650" y="120" width="610" height="720" as="geometry" />
         </mxCell>
-        <mxCell id="13" value="AsyncStream&lt;Reaction&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#7c3aed;strokeColor=#ffffff;strokeWidth=3;fontSize=20;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="950" y="470" width="280" height="100" as="geometry"/>
+        <mxCell id="compoundLabel" value="Compound" style="text;html=0;strokeColor=none;fillColor=none;rotation=270;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=34;fontStyle=1;fontColor=#111827;" parent="1" vertex="1">
+          <mxGeometry x="670" y="375" width="110" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="14" value="reduce(State, Reaction)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f97316;strokeColor=#ffffff;strokeWidth=3;fontSize=20;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="1300" y="470" width="300" height="100" as="geometry"/>
+        <mxCell id="compoundBadge" value="Action queue + MainActor-owned state" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8fbff;strokeColor=#9fb6df;strokeWidth=2;fontSize=15;fontColor=#47628d;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="810" y="150" width="290" height="42" as="geometry" />
         </mxCell>
-        <mxCell id="15" value="State" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#b91c1c;strokeColor=#ffffff;strokeWidth=3;fontSize=24;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="610" y="220" width="220" height="100" as="geometry"/>
+        <mxCell id="reactBox" value="react(action)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#ffe8cf;strokeColor=#de9b1e;strokeWidth=4;fontSize=30;fontStyle=1;fontColor=#111827;shadow=1;" parent="1" vertex="1">
+          <mxGeometry x="800" y="235" width="310" height="110" as="geometry" />
         </mxCell>
-
-        <mxCell id="20" value="send(action)" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontColor=#d1d5db;" vertex="1" parent="1">
-          <mxGeometry x="420" y="585" width="140" height="24" as="geometry"/>
+        <mxCell id="reactNote" value="side effect boundary" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontColor=#c27c00;" parent="1" vertex="1">
+          <mxGeometry x="930" y="370" width="230" height="24" as="geometry" />
         </mxCell>
-        <mxCell id="21" value="reaction 생성" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontColor=#d1d5db;" vertex="1" parent="1">
-          <mxGeometry x="700" y="585" width="140" height="24" as="geometry"/>
+        <mxCell id="streamBox" value="AsyncStream&lt;Reaction&gt;" style="rounded=1;arcSize=20;whiteSpace=wrap;html=0;fillColor=#fff7ed;strokeColor=#f3b46b;strokeWidth=3;dashed=1;fontSize=24;fontStyle=1;fontColor=#fb923c;" parent="1" vertex="1">
+          <mxGeometry x="805" y="430" width="300" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="22" value="순차 방출" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontColor=#d1d5db;" vertex="1" parent="1">
-          <mxGeometry x="1020" y="585" width="140" height="24" as="geometry"/>
+        <mxCell id="reduceBox" value="reduce(state, reaction)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dff1df;strokeColor=#79b65a;strokeWidth=4;fontSize=28;fontStyle=1;fontColor=#111827;shadow=1;" parent="1" vertex="1">
+          <mxGeometry x="790" y="565" width="330" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="23" value="상태 전이" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=14;fontColor=#d1d5db;" vertex="1" parent="1">
-          <mxGeometry x="1390" y="585" width="120" height="24" as="geometry"/>
+        <mxCell id="reduceNote" value="state transition boundary" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontColor=#4b8d39;" parent="1" vertex="1">
+          <mxGeometry x="960" y="690" width="220" height="24" as="geometry" />
         </mxCell>
-        <mxCell id="24" value="render / observe" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=15;fontColor=#ffd84d;" vertex="1" parent="1">
-          <mxGeometry x="850" y="160" width="170" height="24" as="geometry"/>
+        <mxCell id="stateBox" value="State" style="rounded=1;arcSize=18;whiteSpace=wrap;html=0;fillColor=#fff5f5;strokeColor=#d97777;strokeWidth=4;fontSize=28;fontStyle=1;fontColor=#111827;shadow=1;" parent="1" vertex="1">
+          <mxGeometry x="845" y="735" width="220" height="72" as="geometry" />
         </mxCell>
-
-        <mxCell id="30" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#ffffff;strokeWidth=4;" edge="1" parent="1" source="10" target="11">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="service1" value="Service" style="rounded=1;arcSize=14;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#737373;strokeWidth=5;fontSize=26;fontStyle=1;fontColor=#111827;shadow=1;" parent="1" vertex="1">
+          <mxGeometry x="1460" y="230" width="260" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="31" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#ffffff;strokeWidth=4;" edge="1" parent="1" source="11" target="12">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="service2" value="Repository" style="rounded=1;arcSize=14;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#8a8a8a;strokeWidth=4;fontSize=22;fontStyle=1;fontColor=#3f3f46;" parent="1" vertex="1">
+          <mxGeometry x="1460" y="390" width="260" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="32" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#ffffff;strokeWidth=4;" edge="1" parent="1" source="12" target="13">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="service3" value="External Client" style="rounded=1;arcSize=14;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#a3a3a3;strokeWidth=4;fontSize=22;fontStyle=1;fontColor=#52525b;" parent="1" vertex="1">
+          <mxGeometry x="1460" y="530" width="260" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="33" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#ffffff;strokeWidth=4;" edge="1" parent="1" source="13" target="14">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="sideEffectLabel" value="Side Effect" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=28;fontStyle=1;fontColor=#ffac5f;" parent="1" vertex="1">
+          <mxGeometry x="1270" y="250" width="180" height="32" as="geometry" />
         </mxCell>
-        <mxCell id="34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#ffffff;strokeWidth=4;" edge="1" parent="1" source="14" target="15">
+        <mxCell id="observeLabel" value="observe / render" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontColor=#6a8ec8;" parent="1" vertex="1">
+          <mxGeometry x="190" y="565" width="270" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeAction" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#ffac5f;strokeWidth=5;" parent="1" source="view" target="reactBox" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1450" y="270"/>
+              <mxPoint x="250" y="210" />
+              <mxPoint x="955" y="210" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#ffd84d;strokeWidth=4;" edge="1" parent="1" source="15" target="10">
+        <mxCell id="2mF1Ra9wqEazGuCkqSEg-4" value="&lt;span style=&quot;color: rgb(255, 172, 95); font-size: 28px; font-weight: 700; text-wrap: wrap; background-color: rgb(251, 251, 251);&quot;&gt;&amp;nbsp;Action&amp;nbsp;&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="edgeAction" vertex="1" connectable="0">
+          <mxGeometry x="-0.0824" y="2" relative="1" as="geometry">
+            <mxPoint x="11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeReactToStream" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#ffac5f;strokeWidth=4;" parent="1" source="reactBox" target="streamBox" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeStreamToReduce" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#ffac5f;strokeWidth=4;" parent="1" source="streamBox" target="reduceBox" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeReduceToState" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#ffac5f;strokeWidth=4;" parent="1" source="reduceBox" target="stateBox" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edgeStateToView" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#ffac5f;strokeWidth=5;" parent="1" source="stateBox" target="view" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="260" y="270"/>
+              <mxPoint x="955" y="870" />
+              <mxPoint x="250" y="870" />
             </Array>
           </mxGeometry>
+        </mxCell>
+        <mxCell id="2mF1Ra9wqEazGuCkqSEg-3" value="&lt;span style=&quot;color: rgb(255, 172, 95); font-size: 28px; font-weight: 700; text-wrap: wrap; background-color: rgb(251, 251, 251);&quot;&gt;&amp;nbsp;State&amp;nbsp;&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="edgeStateToView" vertex="1" connectable="0">
+          <mxGeometry x="-0.2412" y="-5" relative="1" as="geometry">
+            <mxPoint x="-74" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edgeSideEffect" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#ffac5f;strokeWidth=5;" parent="1" source="reactBox" target="service1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="viewCaption" value="SwiftUI / UIKit" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontColor=#7c6793;" parent="1" vertex="1">
+          <mxGeometry x="147.5" y="460" width="205" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="streamNote" value="sequential reaction emission" style="text;html=0;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=15;fontColor=#ea7b1e;" parent="1" vertex="1">
+          <mxGeometry x="950" y="514" width="230" height="24" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
