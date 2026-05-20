@@ -264,8 +264,8 @@ newState.toastMessage = "Saved"
 newState.toastMessage = "Saved"
 ```
 
-현재는 전용 `.onTrigger(...)` helper보다 state semantics 제공이 우선입니다.
-그래서 SwiftUI에서는 projected value의 `id` 변화를 관찰하는 방식으로 one-shot signal을 처리할 수 있습니다.
+현재는 `@Trigger` 자체뿐 아니라 view에서 바로 소비할 수 있는 helper도 함께 제공합니다.
+SwiftUI에서는 `.trigger(of:_:)`로 내부 update count를 직접 다루지 않고 one-shot signal을 받을 수 있습니다.
 
 ```swift
 struct SaveView: View {
@@ -276,15 +276,26 @@ struct SaveView: View {
         Button("Save") {
             compound.send(.saveButtonTapped)
         }
-        .onChange(of: compound.state.$toastMessage.id) { _, _ in
-            visibleToast = compound.state.toastMessage
+        .trigger(of: compound, \.$toastMessage) { message in
+            visibleToast = message
         }
     }
 }
 ```
 
-`$toastMessage`는 `TriggerValue<String?>`를 노출하며, 여기서 `id`는 매 assignment마다 새로 생성됩니다.
-그래서 `"Saved"` 같은 동일한 문자열을 다시 대입해도 view가 새 trigger 발생으로 구분할 수 있습니다.
+UIKit / Combine 경로에서는 `compound.trigger(\.$toastMessage)`로 구독할 수 있습니다.
+
+```swift
+compound.trigger(\.$toastMessage)
+    .compactMap { $0 }
+    .sink { message in
+        showToast(message)
+    }
+    .store(in: &cancellables)
+```
+
+`$toastMessage`는 내부적으로 `valueUpdatedCount`를 함께 가지며, 매 assignment마다 count를 증가시킵니다.
+그래서 `"Saved"` 같은 동일한 문자열을 다시 대입해도 view는 새 trigger 발생으로 구분할 수 있습니다.
 
 `@Trigger`는 persistent state 전체에 쓰기보다, 반복 표시가 필요한 one-shot UI 신호에만 선택적으로 사용하는 것을 권장합니다.
 

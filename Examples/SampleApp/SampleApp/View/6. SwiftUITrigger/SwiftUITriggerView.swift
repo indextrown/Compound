@@ -53,23 +53,8 @@ struct SwiftUITriggerView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .navigationTitle("SwiftUI Trigger")
         .navigationBarTitleDisplayMode(.inline)
-        .overlay(alignment: .top) {
-            if let visibleToastMessage {
-                Text(visibleToastMessage)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(
-                        Capsule()
-                            .fill(.black.opacity(0.82))
-                    )
-                    .padding(.top, 12)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
-        }
-        .onChange(of: compound.state.$toastMessage.id) { _, _ in
-            guard let message = compound.state.toastMessage else { return }
+        .trigger(of: compound, \.$toastMessage) { message in
+            guard let message else { return }
 
             triggerCount += 1
             toastTask?.cancel()
@@ -87,6 +72,21 @@ struct SwiftUITriggerView: View {
                         visibleToastMessage = nil
                     }
                 }
+            }
+        }
+        .overlay(alignment: .top) {
+            if let visibleToastMessage {
+                Text(visibleToastMessage)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        Capsule()
+                            .fill(.black.opacity(0.82))
+                    )
+                    .padding(.top, 12)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
         .onDisappear {

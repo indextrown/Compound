@@ -357,6 +357,18 @@ final class CompoundMacroTests: XCTestCase {
                         .eraseToAnyPublisher()
                 }
 
+                func trigger<Value>(
+                    _ keyPath: KeyPath<State, Trigger<Value>>
+                ) -> AnyPublisher<Value, Never> {
+                    $state
+                        .map(keyPath)
+                        .removeDuplicates { lhs, rhs in
+                            lhs.valueUpdatedCount == rhs.valueUpdatedCount
+                        }
+                        .map(\\.value)
+                        .eraseToAnyPublisher()
+                }
+
                 @MainActor
                 let _compoundRuntime = CompoundRuntimeStorage()
             }

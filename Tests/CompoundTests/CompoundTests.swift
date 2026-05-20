@@ -286,14 +286,16 @@ struct CompoundTests {
         let firstTrigger = compound.state.$toastMessage
 
         compound.send(.showToast)
-        try await waitUntil { compound.state.$toastMessage.id != firstTrigger.id }
+        try await waitUntil {
+            compound.state.$toastMessage.valueUpdatedCount != firstTrigger.valueUpdatedCount
+        }
 
         #expect(compound.state.toastMessage == "Saved")
-        #expect(compound.state.$toastMessage.id != firstTrigger.id)
+        #expect(compound.state.$toastMessage.valueUpdatedCount != firstTrigger.valueUpdatedCount)
     }
 
-    @Test("@Trigger projected value는 같은 값 재할당마다 새로운 식별자를 만든다")
-    func triggerProjectedValueChangesIdentityOnRepeatedAssignments() {
+    @Test("@Trigger projected value는 같은 값 재할당마다 update count를 증가시킨다")
+    func triggerProjectedValueChangesCountOnRepeatedAssignments() {
         var state = TriggerCompound.State()
 
         let initial = state.$toastMessage
@@ -302,8 +304,8 @@ struct CompoundTests {
         state.toastMessage = "Saved"
         let second = state.$toastMessage
 
-        #expect(initial.id != first.id)
-        #expect(first.id != second.id)
+        #expect(initial.valueUpdatedCount != first.valueUpdatedCount)
+        #expect(first.valueUpdatedCount != second.valueUpdatedCount)
         #expect(first.value == second.value)
     }
 
