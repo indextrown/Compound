@@ -21,6 +21,19 @@ public struct CompoundKitMacro: MemberMacro, ExtensionMacro {
             }
             """,
             """
+            func trigger<Value>(
+                _ keyPath: KeyPath<State, Trigger<Value>>
+            ) -> AnyPublisher<Value, Never> {
+                $state
+                    .map(keyPath)
+                    .removeDuplicates { lhs, rhs in
+                        lhs.valueUpdatedCount == rhs.valueUpdatedCount
+                    }
+                    .map(\\.value)
+                    .eraseToAnyPublisher()
+            }
+            """,
+            """
             @MainActor
             let _compoundRuntime = CompoundRuntimeStorage()
             """

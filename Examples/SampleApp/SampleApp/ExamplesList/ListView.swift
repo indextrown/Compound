@@ -104,6 +104,19 @@ struct ListView: View {
                     }
                     .padding(.vertical, 4)
                 }
+
+                NavigationLink {
+                    SwiftUITriggerView()
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SwiftUI Trigger")
+                            .font(.headline)
+                        Text("같은 메시지를 반복 대입해도 @Trigger가 매번 새로운 one-shot UI 신호로 동작하는 예시입니다.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
             }
             .navigationTitle("Compound Examples")
         }

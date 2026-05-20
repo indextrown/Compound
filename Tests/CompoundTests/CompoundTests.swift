@@ -149,6 +149,48 @@ private final class CounterCompound: CompoundType {
     }
 }
 
+private final class TriggerCompound: CompoundType {
+    enum Action: Sendable {
+        case showToast
+    }
+
+    enum Reaction: Sendable {
+        case showToast(String)
+    }
+
+    struct State: Equatable {
+        @Trigger var toastMessage: String?
+    }
+
+    @MainActor
+    let _compoundRuntime = CompoundRuntimeStorage()
+
+    @MainActor
+    var state = State()
+
+    @MainActor
+    init() {}
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        switch action {
+        case .showToast:
+            return .just(.showToast("Saved"))
+        }
+    }
+
+    @MainActor
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+
+        switch reaction {
+        case .showToast(let message):
+            newState.toastMessage = message
+        }
+
+        return newState
+    }
+}
+
 @Suite("Compound")
 struct CompoundTests {
     @Test("currentState는 현재 state를 그대로 노출한다")
@@ -231,6 +273,40 @@ struct CompoundTests {
 
         #expect(compound.state == .init(count: 0))
         #expect(compound.stateAssignmentCount == 0)
+    }
+
+    @Test("@Trigger는 같은 값을 다시 대입해도 새로운 state 변화로 구분한다")
+    @MainActor
+    func triggerTreatsSameValueAssignmentAsNewSignal() async throws {
+        let compound = TriggerCompound()
+
+        compound.send(.showToast)
+        try await waitUntil { compound.state.toastMessage == "Saved" }
+
+        let firstTrigger = compound.state.$toastMessage
+
+        compound.send(.showToast)
+        try await waitUntil {
+            compound.state.$toastMessage.valueUpdatedCount != firstTrigger.valueUpdatedCount
+        }
+
+        #expect(compound.state.toastMessage == "Saved")
+        #expect(compound.state.$toastMessage.valueUpdatedCount != firstTrigger.valueUpdatedCount)
+    }
+
+    @Test("@Trigger projected value는 같은 값 재할당마다 update count를 증가시킨다")
+    func triggerProjectedValueChangesCountOnRepeatedAssignments() {
+        var state = TriggerCompound.State()
+
+        let initial = state.$toastMessage
+        state.toastMessage = "Saved"
+        let first = state.$toastMessage
+        state.toastMessage = "Saved"
+        let second = state.$toastMessage
+
+        #expect(initial.valueUpdatedCount != first.valueUpdatedCount)
+        #expect(first.valueUpdatedCount != second.valueUpdatedCount)
+        #expect(first.value == second.value)
     }
 
     @MainActor
