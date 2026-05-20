@@ -11,6 +11,7 @@ Compound는 SwiftUI와 UIKit에서 사용할 수 있는 단방향 상태 관리 
 - [기본 사용법](#기본-사용법)
 - [SwiftUI에서 사용하기](#swiftui에서-사용하기)
 - [UIKit에서 사용하기](#uikit에서-사용하기)
+- [Trigger로 one-shot 신호 표현하기](#trigger로-one-shot-신호-표현하기)
 - [Reaction Stream 조합](#reaction-stream-조합)
 - [취소 정책](#취소-정책)
 - [동작 파이프라인](#동작-파이프라인)
@@ -243,6 +244,49 @@ final class CounterViewController: UIViewController {
 
 즉 현재 `@CompoundKit`은 UIKit/Combine 경로에 필요한 런타임 멤버, `CompoundType` 채택, `publisher(\.field)` helper를 함께 정리해주는 역할을 맡습니다.
 직접 Combine 체인을 조합하는 경로도 계속 유효합니다.
+
+## Trigger로 one-shot 신호 표현하기
+
+토스트, 얼럿, dismiss, 네비게이션처럼 한 번 발생하고 소비되는 UI 신호는 `@Trigger`로 표현할 수 있습니다.
+
+```swift
+struct State: Equatable {
+    @Trigger var toastMessage: String?
+    var isLoading = false
+}
+```
+
+`@Trigger`는 같은 값을 다시 대입해도 새로운 trigger 발생으로 취급합니다.
+즉 아래 두 대입은 같은 문자열이어도 서로 다른 state 변화로 구분됩니다.
+
+```swift
+newState.toastMessage = "Saved"
+newState.toastMessage = "Saved"
+```
+
+현재는 전용 `.onTrigger(...)` helper보다 state semantics 제공이 우선입니다.
+그래서 SwiftUI에서는 projected value의 `id` 변화를 관찰하는 방식으로 one-shot signal을 처리할 수 있습니다.
+
+```swift
+struct SaveView: View {
+    @State private var compound = SaveCompound()
+    @State private var visibleToast: String?
+
+    var body: some View {
+        Button("Save") {
+            compound.send(.saveButtonTapped)
+        }
+        .onChange(of: compound.state.$toastMessage.id) { _, _ in
+            visibleToast = compound.state.toastMessage
+        }
+    }
+}
+```
+
+`$toastMessage`는 `TriggerValue<String?>`를 노출하며, 여기서 `id`는 매 assignment마다 새로 생성됩니다.
+그래서 `"Saved"` 같은 동일한 문자열을 다시 대입해도 view가 새 trigger 발생으로 구분할 수 있습니다.
+
+`@Trigger`는 persistent state 전체에 쓰기보다, 반복 표시가 필요한 one-shot UI 신호에만 선택적으로 사용하는 것을 권장합니다.
 
 ## Reaction Stream 조합
 
