@@ -1,4 +1,5 @@
 # Compound
+![Compound Flow](./Pipeline/Flow.png)
 
 Compound는 SwiftUI와 UIKit에서 사용할 수 있는 단방향 상태 관리 라이브러리입니다.
 
