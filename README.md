@@ -124,7 +124,6 @@ final class CounterCompound {
         }
     }
 
-    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
@@ -214,7 +213,6 @@ final class CounterCompound {
         }
     }
 
-    @MainActor
     func reduce(state: State, reaction: Reaction) -> State {
         var newState = state
 
