@@ -11,6 +11,7 @@ Compound는 SwiftUI와 UIKit에서 사용할 수 있는 단방향 상태 관리 
 - [설치](#설치)
 - [기본 사용법](#기본-사용법)
 - [SwiftUI에서 사용하기](#swiftui에서-사용하기)
+- [SwiftUI Lifecycle Actions](#swiftui-lifecycle-actions)
 - [UIKit에서 사용하기](#uikit에서-사용하기)
 - [Trigger로 one-shot 신호 표현하기](#trigger로-one-shot-신호-표현하기)
 - [Reaction Stream 조합](#reaction-stream-조합)
@@ -179,6 +180,98 @@ struct CounterView: View {
 SwiftUI에서는 `@State`로 Compound를 소유하고, 화면 이벤트에서 `send(_:)`를 호출합니다.
 현재 `@Compound`의 목표는 state 단위 Observation을 제공하는 SwiftUI 전환용 매크로입니다.
 즉 지금 단계의 기본 읽기 경로는 `compound.state.xxx`이며, `ObservableObject + @Published state` 의존성을 걷어내는 것이 우선 목표입니다.
+
+## SwiftUI Lifecycle Actions
+
+Compound 생성자는 side effect 없이 state와 dependency만 초기화하는 경로로 유지하는 것을 권장합니다.
+초기 로딩, 재진입 갱신, id 기반 재요청 같은 lifecycle event도 feature의 `Action`으로 표현하고, view body의 SwiftUI modifier에서 보냅니다.
+
+- `compoundOnLoad`는 화면 최초 로딩 action에 적합합니다.
+- `compoundOnAppear`는 화면이 다시 나타날 때 갱신해야 하는 경우 적합합니다.
+- `compoundTask(id:)`는 id 기반 재요청에 적합합니다.
+- 네트워크 요청은 `react(action:)` 내부에서 실행합니다.
+- `reduce(state:reaction:)`는 `Reaction`만 받아 순수 상태 전이를 수행합니다.
+
+```swift
+import Compound
+import SwiftUI
+
+struct Feed: Equatable, Sendable {
+    let id: Int
+    let title: String
+}
+
+@Compound
+final class FeedCompound {
+    enum Action: Sendable {
+        case viewDidLoad
+        case refreshPulled
+    }
+
+    enum Reaction: Sendable {
+        case setLoading(Bool)
+        case setFeeds([Feed])
+    }
+
+    struct State: Equatable {
+        var isLoading = false
+        var feeds: [Feed] = []
+    }
+
+    var state = State()
+
+    func react(action: Action) -> AsyncStream<Reaction> {
+        switch action {
+        case .viewDidLoad, .refreshPulled:
+            return loadFeeds()
+        }
+    }
+
+    func reduce(state: State, reaction: Reaction) -> State {
+        var newState = state
+
+        switch reaction {
+        case .setLoading(let isLoading):
+            newState.isLoading = isLoading
+        case .setFeeds(let feeds):
+            newState.feeds = feeds
+        }
+
+        return newState
+    }
+
+    private func loadFeeds() -> AsyncStream<Reaction> {
+        .concat(
+            .just(.setLoading(true)),
+            .run { send in
+                let feeds = [
+                    Feed(id: 1, title: "First"),
+                    Feed(id: 2, title: "Second")
+                ]
+
+                await send(.setFeeds(feeds))
+                await send(.setLoading(false))
+            }
+        )
+    }
+}
+
+struct FeedView: View {
+    @State private var compound = FeedCompound()
+
+    var body: some View {
+        FeedContent(state: compound.state)
+            .compoundOnLoad(compound, .viewDidLoad)
+            .refreshable {
+                compound.send(.refreshPulled)
+            }
+    }
+}
+```
+
+`compoundOnLoad(compound, .viewDidLoad)`는 같은 view identity 안에서 기본적으로 한 번만 action을 보냅니다.
+다시 나타날 때마다 action을 보내야 하면 `compoundOnAppear(compound, .viewDidLoad, once: false)`를 사용합니다.
+특정 id가 바뀔 때마다 다시 요청해야 하면 `compoundTask(compound, action: .refreshPulled, id: requestID)`처럼 `.task(id:)` 기반 helper를 사용합니다.
 
 ## UIKit에서 사용하기
 

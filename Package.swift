@@ -69,6 +69,10 @@ let package = Package(
             dependencies: ["CompoundCore"]
         ),
         .testTarget(
+            name: "CompoundSwiftUITests",
+            dependencies: ["Compound"]
+        ),
+        .testTarget(
             name: "CompoundKitTests",
             dependencies: ["CompoundKit"]
         ),
