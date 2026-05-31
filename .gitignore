@@ -3,6 +3,7 @@
 /Packages
 xcuserdata/
 DerivedData/
+__pycache__/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
@@ -11,3 +12,6 @@ issue.md
 /Benchmark
 /Performance.md
 memory.drawio
+/.codex/agent-logs/
+/.agents/agent-logs/
+/.agents/logs/
